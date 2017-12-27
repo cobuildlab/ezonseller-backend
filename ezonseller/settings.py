@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import environ
-import dj_database_url
 
 env = environ.Env() # set default values and casting
 environ.Env.read_env() # reading .env file
@@ -48,6 +47,7 @@ DJANGO_APPS = [
 
 LOCAL_APPS =[
     'account',
+    'notification',
 ]
 
 THIRD_PARTY_APPS = [
@@ -103,9 +103,6 @@ DATABASES = {
 DATABASES = {
     'default':env.db()
 }
-
-db_from_env = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(db_from_env)
 
 #Email-AppProjecturation
 EMAIL_USE_TLS = env('EMAIL_TLS')
