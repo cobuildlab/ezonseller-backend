@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from django.contrib.auth import authenticate
 from account import models as account_models
+from notification import views as notify_views
 from datetime import datetime
 from account import validations
 
@@ -82,3 +83,20 @@ class RegisterView(APIView):
         return Response({'username': user.username}, status=STATUS['201'])
 
 
+class RecoverPasswordView(APIView):
+    permission_classes = (permissions.AllowAny)
+
+    def post(self, request):
+        email = request.data.get('email')
+
+        if not email:
+            return Response({'message': 'the email cant be empty'}, status=STATUS['400'])
+
+        try:
+            user = account_models.User.objects.get(email=email)
+        except account_models.User.DoesNotExist:
+            return Response({'message': 'the email not exit'}, status=STATUS['400'])
+
+        notify_views.recoverpassword(user)
+
+        return Response({'message': 'the email has been send'})
