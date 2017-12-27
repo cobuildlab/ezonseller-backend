@@ -48,6 +48,7 @@ DJANGO_APPS = [
 
 LOCAL_APPS =[
     'account',
+    'notification'
 ]
 
 THIRD_PARTY_APPS = [
