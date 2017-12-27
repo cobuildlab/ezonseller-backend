@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import environ
+import dj_database_url
+
 env = environ.Env() # set default values and casting
 environ.Env.read_env() # reading .env file
 
@@ -101,6 +103,10 @@ DATABASES = {
 DATABASES = {
     'default':env.db()
 }
+
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
+
 #Email-AppProjecturation
 EMAIL_USE_TLS = env('EMAIL_TLS')
 EMAIL_HOST = env('EMAIL_HOST')
@@ -188,8 +194,13 @@ MEDIA_ROOT=os.path.join(BASE_DIR, "media/")
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-#AUTH_USER_MODEL = "account.User"
+AUTH_USER_MODEL = "account.User"
 
 LOGGING = {
     'version': 1,
