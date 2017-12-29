@@ -68,9 +68,11 @@ class Logout(APIView):
 
 
 class RegisterView(APIView):
+    """
+    """
     permission_classes = (permissions.AllowAny,)
 
-    def post(self,request):
+    def post(self, request):
         user_serializer = validations.UserCreateSerializers(data=request.data)
         if user_serializer.is_valid() is False:
             errors_msg = []
@@ -84,19 +86,32 @@ class RegisterView(APIView):
 
 
 class RecoverPasswordView(APIView):
-    permission_classes = (permissions.AllowAny)
+    """
+    """
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         email = request.data.get('email')
-
         if not email:
             return Response({'message': 'the email cant be empty'}, status=STATUS['400'])
-
         try:
             user = account_models.User.objects.get(email=email)
         except account_models.User.DoesNotExist:
             return Response({'message': 'the email not exit'}, status=STATUS['400'])
 
-        notify_views.recoverpassword(user)
+        if notify_views.recover_password(user):
+            return Response({'message': 'the email has been send'})
+        return Response({'message': 'the email cannot be sent'}, status=STATUS['500'])
 
-        return Response({'message': 'the email has been send'})
+
+class ChangePasswordView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def put(self, request):
+        user = request.user
+        serializer = validations.UserChangePasswordSerializers(user, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user.auth_token.delete()
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'message': 'the password has been change successfully', 'token': token.key})
