@@ -26,7 +26,8 @@ urlpatterns = [
     path('login/', account_views.Login.as_view()),
     path('logout/', account_views.Logout.as_view()),
     path('accounts/register/', account_views.RegisterView.as_view()),
-    path('accounts/recovery/', account_views.RecoverPasswordView.as_view()),
-    path('accounts/change/', account_views.ChangePasswordView.as_view()),
+    path('accounts/recoverypassword/', account_views.RequestRecoverPassword.as_view()),
+    path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
+    path('accounts/profilechangepassword/', account_views.ChangePasswordView.as_view()),
 
 ]

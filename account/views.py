@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.hashers import make_password
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -37,14 +38,14 @@ class Login(APIView):
         password = data.get('password')
 
         if not username:
-            return Response({'message': 'the username dont be empty'}, status=STATUS['400'])
+            return Response({'message': 'The username dont be empty'}, status=STATUS['400'])
 
         if not password:
-            return Response({'message': 'the password dont be empty'}, status=STATUS['400'])
+            return Response({'message': 'The password dont be empty'}, status=STATUS['400'])
 
         user = authenticate(username=username, password=password)
         if not user:
-            return Response({'message': 'user or pass invalid'}, status=STATUS['400'])
+            return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
 
 
         token, created = Token.objects.get_or_create(user=user)
@@ -85,7 +86,7 @@ class RegisterView(APIView):
         return Response({'username': user.username}, status=STATUS['201'])
 
 
-class RecoverPasswordView(APIView):
+class RequestRecoverPassword(APIView):
     """
     """
     permission_classes = (permissions.AllowAny,)
@@ -93,15 +94,38 @@ class RecoverPasswordView(APIView):
     def post(self, request):
         email = request.data.get('email')
         if not email:
-            return Response({'message': 'the email cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'The email cant be empty'}, status=STATUS['400'])
         try:
             user = account_models.User.objects.get(email=email)
         except account_models.User.DoesNotExist:
-            return Response({'message': 'the email not exit'}, status=STATUS['400'])
+            return Response({'message': 'The email not exit'}, status=STATUS['400'])
 
         if notify_views.recover_password(user):
-            return Response({'message': 'the email has been send'})
-        return Response({'message': 'the email cannot be sent'}, status=STATUS['500'])
+            return Response({'message': 'The email has been send'})
+        return Response({'message': 'The email cannot be sent'}, status=STATUS['500'])
+    
+    
+class RecoverPasswordView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        code = request.data.get('code')
+        password = request.data.get('password')
+
+        if not code:
+            return Response({'message':'You need to send the code'}, status=STATUS['400'])
+        
+        if not password:
+            return Response({'message':'You need to send the password'}, status=STATUS['400'])
+        try:
+            user = account_models.User.objects.get(recovery = str(code))
+        except account_models.User.DoesNotExist:
+            return Response({'message': 'Invalid code, please write the correct code'}, status=STATUS['400'])
+        
+        user.password= make_password(password)
+        user.recovery=''
+        user.save()
+        return Response({'message':'The password has been change successfully'})
 
 
 class ChangePasswordView(APIView):
@@ -114,4 +138,4 @@ class ChangePasswordView(APIView):
         serializer.save()
         user.auth_token.delete()
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'message': 'the password has been change successfully', 'token': token.key})
+        return Response({'message': 'The password has been change successfully', 'token': token.key})
