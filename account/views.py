@@ -13,17 +13,20 @@ from account import models as account_models
 from notification import views as notify_views
 from datetime import datetime
 from account import validations
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_text
+from account.tokens import account_activation_token
 
 #status-code-response
 STATUS = {
-    "200":status.HTTP_200_OK,
-    "201":status.HTTP_201_CREATED,
-    "202":status.HTTP_202_ACCEPTED,
-    "204":status.HTTP_204_NO_CONTENT,
-    "400":status.HTTP_400_BAD_REQUEST,
-    "401":status.HTTP_401_UNAUTHORIZED,
-    "404":status.HTTP_404_NOT_FOUND,
-    "500":status.HTTP_500_INTERNAL_SERVER_ERROR
+    "200": status.HTTP_200_OK,
+    "201": status.HTTP_201_CREATED,
+    "202": status.HTTP_202_ACCEPTED,
+    "204": status.HTTP_204_NO_CONTENT,
+    "400": status.HTTP_400_BAD_REQUEST,
+    "401": status.HTTP_401_UNAUTHORIZED,
+    "404": status.HTTP_404_NOT_FOUND,
+    "500": status.HTTP_500_INTERNAL_SERVER_ERROR
 }
 
 
@@ -47,7 +50,7 @@ class Login(APIView):
         if not user:
             user_find = account_models.User.objects.get(username=username)
             if not user_find.is_active:
-                return Response({'message':'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
+                return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
             return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'last_login': user.last_login})
@@ -85,7 +88,11 @@ class RegisterView(APIView):
             error_msg = "".join(errors_msg)
             return Response(errors_msg[0], status=status.HTTP_400_BAD_REQUEST)
         user = user_serializer.save()
-        return Response({'username': user.username,}, status=STATUS['201'])
+        if notify_views.activate_account(user, request):
+            return Response({'username': user.username, 'message': 'The email has been send'}, status=STATUS['201'])
+        else:
+            user.delete()
+            return Response({'message': 'The email cannot be sent and account not created'}, status=STATUS['500'])
 
 
 class RequestRecoverPassword(APIView):
@@ -108,29 +115,34 @@ class RequestRecoverPassword(APIView):
     
     
 class RecoverPasswordView(APIView):
+    """
+    """
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+
         code = request.data.get('code')
         password = request.data.get('password')
 
         if not code:
-            return Response({'message':'You need to send the code'}, status=STATUS['400'])
+            return Response({'message': 'You need to send the code'}, status=STATUS['400'])
         
         if not password:
-            return Response({'message':'You need to send the password'}, status=STATUS['400'])
+            return Response({'message': 'You need to send the password'}, status=STATUS['400'])
         try:
             user = account_models.User.objects.get(recovery = str(code))
         except account_models.User.DoesNotExist:
             return Response({'message': 'Invalid code, please write the correct code'}, status=STATUS['400'])
         
-        user.password= make_password(password)
-        user.recovery=''
+        user.password = make_password(password)
+        user.recovery = ''
         user.save()
-        return Response({'message':'The password has been change successfully'})
+        return Response({'message': 'The password has been change successfully'})
 
 
 class ChangePasswordView(APIView):
+    """
+    """
     permission_classes = (permissions.IsAuthenticated,)
 
     def put(self, request):
@@ -142,47 +154,26 @@ class ChangePasswordView(APIView):
         token, created = Token.objects.get_or_create(user=user)
         return Response({'message': 'The password has been change successfully', 'token': token.key})
 
-from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_text
-from .tokens import account_activation_token
-class example(APIView):
-    permission_classes = (permissions.AllowAny,)
-    def get(self, request):
-        user = account_models.User.objects.get(username='element')
-        print(user.pk)
-        data = {'current_site' : get_current_site(request),
-        'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-        'token':account_activation_token.make_token(user)}
-        print(data)
-        print (type(data['uid']))
-        return Response({})
 
-class activate(APIView):
+class ActivateAccountView(APIView):
     permission_classes = (permissions.AllowAny,)
-    def get(self, request,):
-        uidb64 = self.request.GET.get('uidb64')
+
+    def get(self, request):
+
+        uidb = self.request.GET.get('uidb64')
         token = self.request.GET.get('token')
-        print(uidb64)
-        print(token)
-        print(type(uidb64), type(token))
-        x = uidb64.strip("b")
-        x = x[1:3]
-        x = str.encode(x)
-        print(x)
-        uid = force_text(urlsafe_base64_decode(x))
-        print(uid)
-        print(type(int(uid)))
-        user =account_models.User.objects.get(pk=uid)
-        print(user)
+        decode = uidb.strip("b")
+        count = len(decode)-1
+        decode = decode[1:count]
+        decode = str.encode(decode)
+        uid = force_text(urlsafe_base64_decode(decode))
+        try:
+            user = account_models.User.objects.get(pk=uid)
+        except account_models.User.DoesNotExist:
+            return Response({'message': 'The user not exist'}, status=STATUS['400'])
         if user is not None and account_activation_token.check_token(user, token):
-            print('entro')
-            #user.is_active = True
-            #user.save()
-            #login(request, user)
-            # return redirect('home')
-            #return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
-        #else:
-            #return HttpResponse('Activation link is invalid!')
-        #    print('no entro')
-        return Response({})
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
+        else:
+            return Response({'message': 'Activation link is invalid!'}, status=STATUS['400'])
