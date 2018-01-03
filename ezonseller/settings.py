@@ -25,7 +25,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
-
+AMAZON_ASSOCIATE_TAG = env('ASSOCIATE_TAG')
+AMAZON_ACCESS_KEY_ID = env('ACCESS_KEY_ID')
+AMAZON_SECRECT_ACCESS_KEY = env('SECRECT_ACCESS_KEY')
+EBAY_SECRECT_KEY = env('EBAY_SECRECT_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 if env('DEBUG') == "True":
     DEBUG = True

@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 from account import views as account_views
+from product import views as product_views
 #from rest_framework import routers
 
 #router = routers.DefaultRouter()
@@ -30,4 +31,6 @@ urlpatterns = [
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
     path('accounts/profilechangepassword/', account_views.ChangePasswordView.as_view()),
     re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
+    path('amazon/', product_views.SearchAmazonView.as_view()),
+    path('ebay/', product_views.SearchEbayView.as_view()),
 ]
