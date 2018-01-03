@@ -26,3 +26,6 @@ def recover_password(user):
         return True
     except:
         return False
+
+def activate_account(user):
+    return True

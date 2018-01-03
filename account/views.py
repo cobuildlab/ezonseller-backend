@@ -45,11 +45,13 @@ class Login(APIView):
 
         user = authenticate(username=username, password=password)
         if not user:
+            user_find = account_models.User.objects.get(username=username)
+            if not user_find.is_active:
+                return Response({'message':'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
             return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
-
-
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'last_login': user.last_login})
+        
 
 
 class Logout(APIView):
@@ -83,7 +85,7 @@ class RegisterView(APIView):
             error_msg = "".join(errors_msg)
             return Response(errors_msg[0], status=status.HTTP_400_BAD_REQUEST)
         user = user_serializer.save()
-        return Response({'username': user.username}, status=STATUS['201'])
+        return Response({'username': user.username,}, status=STATUS['201'])
 
 
 class RequestRecoverPassword(APIView):
@@ -139,3 +141,48 @@ class ChangePasswordView(APIView):
         user.auth_token.delete()
         token, created = Token.objects.get_or_create(user=user)
         return Response({'message': 'The password has been change successfully', 'token': token.key})
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_text
+from .tokens import account_activation_token
+class example(APIView):
+    permission_classes = (permissions.AllowAny,)
+    def get(self, request):
+        user = account_models.User.objects.get(username='element')
+        print(user.pk)
+        data = {'current_site' : get_current_site(request),
+        'uid':urlsafe_base64_encode(force_bytes(user.pk)),
+        'token':account_activation_token.make_token(user)}
+        print(data)
+        print (type(data['uid']))
+        return Response({})
+
+class activate(APIView):
+    permission_classes = (permissions.AllowAny,)
+    def get(self, request,):
+        uidb64 = self.request.GET.get('uidb64')
+        token = self.request.GET.get('token')
+        print(uidb64)
+        print(token)
+        print(type(uidb64), type(token))
+        x = uidb64.strip("b")
+        x = x[1:3]
+        x = str.encode(x)
+        print(x)
+        uid = force_text(urlsafe_base64_decode(x))
+        print(uid)
+        print(type(int(uid)))
+        user =account_models.User.objects.get(pk=uid)
+        print(user)
+        if user is not None and account_activation_token.check_token(user, token):
+            print('entro')
+            #user.is_active = True
+            #user.save()
+            #login(request, user)
+            # return redirect('home')
+            #return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+        #else:
+            #return HttpResponse('Activation link is invalid!')
+        #    print('no entro')
+        return Response({})
