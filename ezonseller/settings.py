@@ -37,7 +37,8 @@ DEBUG = True
 #else:
 #    DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com',
+                 'localhost', '127.0.0.1:8000', '127.0.0.1','127.0.0.1:8080']
 
 
 # Application definition
@@ -177,7 +178,7 @@ REST_FRAMEWORK = {
 }
 
 #Django-CORS
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 # CORS_ALLOW_CREDENTIALS = False
 CORS_ALLOW_HEADERS = (
     'accept',
@@ -192,9 +193,9 @@ CORS_ALLOW_HEADERS = (
     'Access-Control-Allow-Origin',
 )
 CORS_ORIGIN_WHITELIST = (
-     'localhost:3000' ,
-     '127.0.0.1:3000',
-     '0.0.0.0:3000',
+     'localhost:8080',
+     '127.0.0.1:8080',
+     '0.0.0.0:8080',
      )
 CORS_ALLOW_METHODS = (
     'DELETE',
