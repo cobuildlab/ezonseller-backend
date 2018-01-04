@@ -1,2 +1,2 @@
 release: python manage.py migrate
-web: gunicorn enzonseller.wsgi --log-file -
+web: gunicorn ezonseller.wsgi --log-file -
