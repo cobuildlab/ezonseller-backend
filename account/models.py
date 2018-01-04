@@ -12,6 +12,7 @@ TYPE_USER = (
 
 class User(AbstractUser):
     type = models.CharField(_('Type'), choices=TYPE_USER, max_length=20, default=USER_NORMAL)
+    recovery = models.CharField(max_length=40, blank=True)
     photo = models.ImageField(_('Photo'), blank=True, null=True)
 
     def __str__(self):

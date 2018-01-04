@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.hashers import make_password
 from account import models as accounts_models
 import re
 
@@ -27,6 +28,7 @@ class UserSerializers(serializers.ModelSerializer):
             username=validated_data['username']
         )
         user.set_password(validated_data['password'])
+        user.is_active = False
         user.save()
         return user
 
@@ -50,3 +52,28 @@ class UserCreateSerializers(UserSerializers):
             raise serializers.ValidationError(_(u"the email already exist, please try with another email"))
         return email
 
+
+class UserChangePasswordSerializers(serializers.ModelSerializer):
+    old_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True, min_length=6, max_length=12)
+
+    class Meta:
+        model = accounts_models.User
+        fields = ('old_password', 'new_password')
+
+    def validate_old_password(self, old_password):
+        # password=self.context['request'].user
+        if not self.context['request'].user.check_password(old_password):
+            raise serializers.ValidationError(_(u"the password does not match"))
+        return old_password
+
+    def validate_new_password(self, new_password):
+        if not re.match(r'(?=.*[A-Za-z]+)(?=.*\d+)', new_password):
+            raise serializers.ValidationError(_(u"the password requires characters and number"))
+        return new_password
+
+    def update(self, instance, validated_data):
+        if validated_data.get('new_password'):
+            instance.password = make_password(validated_data.get('new_password'))
+        instance.save()
+        return instance
