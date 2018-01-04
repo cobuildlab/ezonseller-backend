@@ -11,14 +11,11 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import environ
-<<<<<<< HEAD
+import dj_database_url
+#import environ
 
-=======
->>>>>>> develop
-
-env = environ.Env() # set default values and casting
-environ.Env.read_env() # reading .env file
+#env = environ.Env() # set default values and casting
+#environ.Env.read_env() # reading .env file
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,15 +26,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
-AMAZON_ASSOCIATE_TAG = env('ASSOCIATE_TAG')
-AMAZON_ACCESS_KEY_ID = env('ACCESS_KEY_ID')
-AMAZON_SECRECT_ACCESS_KEY = env('SECRECT_ACCESS_KEY')
-EBAY_SECRECT_KEY = env('EBAY_SECRECT_KEY')
+AMAZON_ASSOCIATE_TAG = 'ezonseller-20'
+AMAZON_ACCESS_KEY_ID = 'AKIAJNSQTMKQ2VCLMZPQ'
+AMAZON_SECRECT_ACCESS_KEY = 'g870VvsBmBbb5YuWrmME7hJ/ZgIc12wtHdfm6q5I'
+EBAY_SECRECT_KEY = 'carlosol-ezonsell-PRD-051ca6568-e7f40784'
 # SECURITY WARNING: don't run with debug turned on in production!
-if env('DEBUG') == "True":
-    DEBUG = True
-else:
-    DEBUG = False
+
+#if env('DEBUG') == "True":
+DEBUG = True
+#else:
+#    DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -54,11 +52,9 @@ DJANGO_APPS = [
 
 LOCAL_APPS =[
     'account',
-<<<<<<< HEAD
-    'notification'
-=======
     'notification',
->>>>>>> develop
+    'payment',
+    'product',
 ]
 
 THIRD_PARTY_APPS = [
@@ -119,23 +115,23 @@ DATABASES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'HOST': env('DB_HOST'),
-        'PASSWORD': env('DB_PASSWORD')
+        'NAME': 'ezonseller',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres123',
+        'HOST': '127.0.0.1',
+        'DATABASE_PORT': '5432',
     }
 }
+#DJ_DATABASE_URL
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> develop
 #Email-AppProjecturation
-EMAIL_USE_TLS = env('EMAIL_TLS')
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env('EMAIL_PORT_USE')
-EMAIL_HOST_USER = env('EMAIL_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'workdeveloper2000@gmail.com'
+EMAIL_HOST_PASSWORD = 'carlos1992'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
