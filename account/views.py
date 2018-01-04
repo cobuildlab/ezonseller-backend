@@ -51,11 +51,10 @@ class Login(APIView):
             user_find = account_models.User.objects.get(username=username)
             if not user_find.is_active:
                 return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
-            return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
+            return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'last_login': user.last_login})
         
-
 
 class Logout(APIView):
     """
