@@ -2,12 +2,14 @@ astroid==1.6.0
 bottlenose==1.1.7
 certifi==2017.11.5
 chardet==3.0.4
+dj-database-url==0.4.2
 Django==2.0
 django-cors-headers==2.1.0
 django-environ==0.4.4
 django-filter==1.1.0
 djangorestframework==3.7.7
 ebaysdk==2.1.5
+gunicorn==19.7.1
 idna==2.6
 isort==4.2.15
 lazy-object-proxy==1.3.1
