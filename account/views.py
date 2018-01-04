@@ -133,10 +133,10 @@ class RecoverPasswordView(APIView):
             user = account_models.User.objects.get(recovery = str(code))
         except account_models.User.DoesNotExist:
             return Response({'message': 'Invalid code, please write the correct code'}, status=STATUS['400'])
-        
-        user.password = make_password(password)
-        user.recovery = ''
-        user.save()
+
+        serializer = validations.UserRecoverPasswordSerializers(user, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({'message': 'The password has been change successfully'})
 
 

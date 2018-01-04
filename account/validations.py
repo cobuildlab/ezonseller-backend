@@ -53,6 +53,26 @@ class UserCreateSerializers(UserSerializers):
         return email
 
 
+class UserRecoverPasswordSerializers(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True,min_length=6, max_length=12)
+
+    class Meta:
+        model = accounts_models.User
+        fields = ('password',)
+
+    def validate_password(self, password):
+        if not re.match(r'(?=.*[A-Za-z]+)(?=.*\d+)', password):
+            raise serializers.ValidationError(_(u"the password requires characters and number"))
+        return password
+
+    def update(self, instance, validated_data):
+        if validated_data.get('password'):
+            instance.password = make_password(validated_data.get('password'))
+            instance.recovery = ''
+        instance.save()
+        return instance
+
+
 class UserChangePasswordSerializers(serializers.ModelSerializer):
     old_password = serializers.CharField(write_only=True, required=True)
     new_password = serializers.CharField(write_only=True, required=True, min_length=6, max_length=12)
