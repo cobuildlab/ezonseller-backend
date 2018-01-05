@@ -37,6 +37,7 @@ class Login(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        band = True
         data = request.data
         username = data.get('username')
         password = data.get('password')
@@ -53,7 +54,7 @@ class Login(APIView):
             except account_models.User.DoesNotExist:
                 return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
             if not user.check_password(password):
-                return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
+                band = False
         else:
             user = authenticate(username=username, password=password)
         if not user:
@@ -63,6 +64,9 @@ class Login(APIView):
                 return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
             if not user_find.is_active:
                 return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
+            else:
+                band = False
+        if not band:
             return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
