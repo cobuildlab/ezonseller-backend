@@ -53,7 +53,7 @@ class Login(APIView):
                 return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
             return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'Token': token.key, 'last_login': user.last_login})
+        return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
         
 
 class Logout(APIView):
