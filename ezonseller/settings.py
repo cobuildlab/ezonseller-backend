@@ -29,6 +29,7 @@ AMAZON_ASSOCIATE_TAG = env('ASSOCIATE_TAG')
 AMAZON_ACCESS_KEY_ID = env('ACCESS_KEY_ID')
 AMAZON_SECRECT_ACCESS_KEY = env('SECRECT_ACCESS_KEY')
 EBAY_SECRECT_KEY = env('EBAY_SECRECT_KEY')
+URL = env('URL')
 # SECURITY WARNING: don't run with debug turned on in production!
 if env('DEBUG') == "True":
     DEBUG = True
@@ -188,7 +189,7 @@ CORS_ALLOW_METHODS = (
 
 #Media-Images
 MEDIA_URL = '/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR, "media/")
+MEDIA_ROOT=os.path.join(BASE_DIR, "media")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/

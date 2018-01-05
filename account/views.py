@@ -13,10 +13,11 @@ from account import models as account_models
 from notification import views as notify_views
 from datetime import datetime
 from account import validations
+from account import serializers
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
-
+import re
 #status-code-response
 STATUS = {
     "200": status.HTTP_200_OK,
@@ -45,17 +46,27 @@ class Login(APIView):
 
         if not password:
             return Response({'message': 'The password dont be empty'}, status=STATUS['400'])
-
-        user = authenticate(username=username, password=password)
+        
+        if re.search('(\w+[.|\w])*@(\w+[.])*\w+', username):
+            try:
+                user = account_models.User.objects.get(email=username)
+            except account_models.User.DoesNotExist:
+                return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
+            if not user.check_password(password):
+                return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
+        else:
+            user = authenticate(username=username, password=password)
         if not user:
-            user_find = account_models.User.objects.get(username=username)
+            try:
+                user_find = account_models.User.objects.get(username=username)
+            except account_models.User.DoesNotExist:
+                return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
             if not user_find.is_active:
                 return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
-            return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
+            return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'Token': token.key, 'last_login': user.last_login})
+        return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
         
-
 
 class Logout(APIView):
     """
@@ -177,3 +188,38 @@ class ActivateAccountView(APIView):
             return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
         else:
             return Response({'message': 'Activation link is invalid!'}, status=STATUS['400'])
+
+
+class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = account_models.User.objects.all()
+    serializer_class = serializers.ProfileUserSerializers
+    http_method_names = ['get', 'put', 'delete', 'post']
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        #serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = validations.ProfileUserSerializers(instance, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    # def perform_update(self, serializer):
+    #     serializer.save()
+
+    # def partial_update(self, request, *args, **kwargs):
+    #     kwargs['partial'] = True
+    #     return self.update(request, *args, **kwargs)
+
+    # @detail_route(methods=['put',], permission_classes=(permissions.IsAuthenticated,))
+    # def contact(self, request, pk=None):
+    #     instance = self.get_object()
+    #     if not instance.contact:
+    #         serializer = accounts_serializers.ConatctSerializer(data=request.data)
+    #     else:
+    #         serializer = accounts_serializers.ConatctSerializer(instance.contact, data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     instance.contact = serializer.instance
+    #     instance.save()
+    #     return Response(serializer.data, status=200)

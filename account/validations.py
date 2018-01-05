@@ -15,22 +15,33 @@ class UserSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = accounts_models.User
-        fields = '__all__'
+        fields = ('username','first_name', 'last_name', 'email', 'photo','type')
 
-    def get_photo_url(self, medal):
+    def get_photo_url(self, obj):
         request = self.context.get('request')
-        photo = medal.photo.url
+        photo = obj.photo.url
         return request.build_absolute_uri(photo)
 
     def create(self, validated_data):
         user = accounts_models.User(
             email=validated_data['email'],
-            username=validated_data['username']
+            username=validated_data['username'],
+            first_name = validated_data['first_name'],
+            last_name = validated_data['last_name']
         )
         user.set_password(validated_data['password'])
         user.is_active = False
         user.save()
         return user
+
+    def update(self, instance, validated_data):
+        if validated_data.get('first_name'):
+            instance.first_name = validated_data.get('first_name')
+        if validated_data.get('last_name'):
+            instance.last_name = validated_data.get('last_name')
+        if validated_data.get('username'):
+            instance.username = validated_data.get('username')
+
 
 
 class UserCreateSerializers(UserSerializers):
@@ -97,3 +108,11 @@ class UserChangePasswordSerializers(serializers.ModelSerializer):
             instance.password = make_password(validated_data.get('new_password'))
         instance.save()
         return instance
+
+class ProfileUserSerializers(UserSerializers):
+    username = serializers.CharField(required=True, min_length=6, max_length=12)
+    email = serializers.CharField(required=True, max_length=50)
+    first_name = serializers.CharField(min_length=3, max_length=30)
+    last_name = serializers.CharField(min_length=3, max_length=30)
+    password = serializers.CharField(required=True, write_only=True, min_length=6, max_length=12)
+    photo = serializers.SerializerMethodField('get_photo_url')
