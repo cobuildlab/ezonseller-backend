@@ -14,12 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 from account import views as account_views
 from product import views as product_views
-#from rest_framework import routers
+from rest_framework import routers
 
-#router = routers.DefaultRouter()
+
+router = routers.DefaultRouter()
+router.register(r'accounts/profile', account_views.ProfileViewSet)
 
 
 urlpatterns = [
@@ -30,7 +32,15 @@ urlpatterns = [
     path('accounts/recoverypassword/', account_views.RequestRecoverPassword.as_view()),
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
     path('accounts/profilechangepassword/', account_views.ChangePasswordView.as_view()),
+    path('', include(router.urls)),
     re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
     path('amazon/', product_views.SearchAmazonView.as_view()),
     path('ebay/', product_views.SearchEbayView.as_view()),
 ]
+from django.conf.urls.static import static, serve
+from ezonseller import settings
+
+if settings.DEBUG:
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT, }),
+    ]

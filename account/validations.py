@@ -15,11 +15,11 @@ class UserSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = accounts_models.User
-        fields = '__all__'
+        fields = ('username','first_name', 'last_name', 'email', 'photo','type')
 
-    def get_photo_url(self, medal):
+    def get_photo_url(self, obj):
         request = self.context.get('request')
-        photo = medal.photo.url
+        photo = obj.photo.url
         return request.build_absolute_uri(photo)
 
     def create(self, validated_data):
@@ -33,6 +33,15 @@ class UserSerializers(serializers.ModelSerializer):
         user.is_active = False
         user.save()
         return user
+
+    def update(self, instance, validated_data):
+        if validated_data.get('first_name'):
+            instance.first_name = validated_data.get('first_name')
+        if validated_data.get('last_name'):
+            instance.last_name = validated_data.get('last_name')
+        if validated_data.get('username'):
+            instance.username = validated_data.get('username')
+
 
 
 class UserCreateSerializers(UserSerializers):
@@ -53,6 +62,26 @@ class UserCreateSerializers(UserSerializers):
         if accounts_models.User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_(u"the email already exist, please try with another email"))
         return email
+
+
+class UserRecoverPasswordSerializers(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True,min_length=6, max_length=12)
+
+    class Meta:
+        model = accounts_models.User
+        fields = ('password',)
+
+    def validate_password(self, password):
+        if not re.match(r'(?=.*[A-Za-z]+)(?=.*\d+)', password):
+            raise serializers.ValidationError(_(u"the password requires characters and number"))
+        return password
+
+    def update(self, instance, validated_data):
+        if validated_data.get('password'):
+            instance.password = make_password(validated_data.get('password'))
+            instance.recovery = ''
+        instance.save()
+        return instance
 
 
 class UserChangePasswordSerializers(serializers.ModelSerializer):
@@ -80,21 +109,10 @@ class UserChangePasswordSerializers(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class UserRecoverPasswordSerializers(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True,min_length=6, max_length=12)
-
-    class Meta:
-        model = accounts_models.User
-        fields = ('password',)
-
-    def validate_password(self, password):
-        if not re.match(r'(?=.*[A-Za-z]+)(?=.*\d+)', password):
-            raise serializers.ValidationError(_(u"the password requires characters and number"))
-        return password
-
-    def update(self, instance, validated_data):
-        if validated_data.get('password'):
-            instance.password = make_password(validated_data.get('password'))
-            instance.recovery = ''
-        instance.save()
-        return instance
+class ProfileUserSerializers(UserSerializers):
+    username = serializers.CharField(required=True, min_length=6, max_length=12)
+    email = serializers.CharField(required=True, max_length=50)
+    first_name = serializers.CharField(min_length=3, max_length=30)
+    last_name = serializers.CharField(min_length=3, max_length=30)
+    password = serializers.CharField(required=True, write_only=True, min_length=6, max_length=12)
+    photo = serializers.SerializerMethodField('get_photo_url')

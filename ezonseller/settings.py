@@ -30,6 +30,7 @@ AMAZON_ASSOCIATE_TAG = 'ezonseller-20'
 AMAZON_ACCESS_KEY_ID = 'AKIAJNSQTMKQ2VCLMZPQ'
 AMAZON_SECRECT_ACCESS_KEY = 'g870VvsBmBbb5YuWrmME7hJ/ZgIc12wtHdfm6q5I'
 EBAY_SECRECT_KEY = 'carlosol-ezonsell-PRD-051ca6568-e7f40784'
+URL = 'http://127.0.0.1:8000'
 # SECURITY WARNING: don't run with debug turned on in production!
 
 #if env('DEBUG') == "True":
@@ -119,7 +120,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'ezonseller',
         'USER': 'postgres',
-        'PASSWORD': 'postgres123',
+        'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',
         'DATABASE_PORT': '5432',
     }
@@ -209,7 +210,7 @@ CORS_ALLOW_METHODS = (
 
 #Media-Images
 MEDIA_URL = '/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR, "media/")
+MEDIA_ROOT=os.path.join(BASE_DIR, "media")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
