@@ -10,7 +10,8 @@ from ebaysdk.finding import Connection as Finding
 import bottlenose.api
 import bottlenose
 from ezonseller.settings import AMAZON_ASSOCIATE_TAG, AMAZON_ACCESS_KEY_ID, AMAZON_SECRECT_ACCESS_KEY,EBAY_SECRECT_KEY
-from product.serializers import EbaySerializers
+from product import serializers
+from product.models import AmazonAssociates, EbayAssociates
 import logging
 
 log = logging.getLogger('product.views')
@@ -99,7 +100,7 @@ class SearchEbayView(APIView):
             aux = []
             for item in items:
                 # print(item.get('title'))
-                aux.append(EbaySerializers(item).data)
+                aux.append(serializers.EbayProductSerializers(item).data)
             data_aux = aux
             # print(item.get('title'))
             # print(item.get('galleryURL'))
@@ -108,3 +109,53 @@ class SearchEbayView(APIView):
             print(e)
             print(e.response.dict())
         return Response(data_aux)
+
+
+class AmazonViewSet(viewsets.ModelViewSet):
+    queryset = AmazonAssociates.objects.all()
+    serializer_class = serializers.AmazonProfileSerializers
+    http_method_names = ['get', 'put', 'delete', 'post']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EbayViewSet(viewsets.ModelViewSet):
+    queryset = EbayAssociates.objects.all()
+    serializer_class = serializers.EbayProfileSerializers
+    http_method_names = ['get', 'put', 'delete', 'post']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)

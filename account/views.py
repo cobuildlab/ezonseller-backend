@@ -101,7 +101,7 @@ class RegisterView(APIView):
             for i in errors_keys:
                 errors_msg.append(str(i) + ": " + str(user_serializer.errors[i][0]))
             error_msg = "".join(errors_msg)
-            return Response(errors_msg[0], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
         user = user_serializer.save()
         if notify_views.activate_account(user, request):
             return Response({'username': user.username, 'message': 'The email has been send'}, status=STATUS['201'])

@@ -41,8 +41,7 @@ class UserSerializers(serializers.ModelSerializer):
             instance.last_name = validated_data.get('last_name')
         if validated_data.get('username'):
             instance.username = validated_data.get('username')
-
-
+        return instance
 
 class UserCreateSerializers(UserSerializers):
 
@@ -108,6 +107,7 @@ class UserChangePasswordSerializers(serializers.ModelSerializer):
             instance.password = make_password(validated_data.get('new_password'))
         instance.save()
         return instance
+
 
 class ProfileUserSerializers(UserSerializers):
     username = serializers.CharField(required=True, min_length=6, max_length=12)
