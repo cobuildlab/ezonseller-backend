@@ -41,8 +41,7 @@ class UserSerializers(serializers.ModelSerializer):
             instance.last_name = validated_data.get('last_name')
         if validated_data.get('username'):
             instance.username = validated_data.get('username')
-
-
+        return instance
 
 class UserCreateSerializers(UserSerializers):
 

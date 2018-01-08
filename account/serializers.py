@@ -16,3 +16,4 @@ class ProfileUserSerializers(serpy.Serializer):
         if not obj.photo:
             return(str(obj.photo))
         return(URL+MEDIA_URL+str(obj.photo))
+        
