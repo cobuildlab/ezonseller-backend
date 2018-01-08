@@ -3,6 +3,7 @@ from ezonseller.settings import URL, MEDIA_URL
 
 
 class ProfileUserSerializers(serpy.Serializer):
+    id = serpy.Field()
     username = serpy.Field()
     first_name = serpy.Field()
     first_name = serpy.Field()
