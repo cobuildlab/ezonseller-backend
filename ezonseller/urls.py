@@ -22,7 +22,8 @@ from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'accounts/profile', account_views.ProfileViewSet)
-
+router.register(r'product/amazon',product_views.AmazonViewSet)
+router.register(r'product/ebay', product_views.EbayViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,8 +35,8 @@ urlpatterns = [
     path('accounts/profilechangepassword/', account_views.ChangePasswordView.as_view()),
     path('', include(router.urls)),
     re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
-    path('amazon/', product_views.SearchAmazonView.as_view()),
     path('ebay/', product_views.SearchEbayView.as_view()),
+    path('country', product_views.CountryView.as_view()),
 ] 
 from django.conf.urls.static import static, serve
 from ezonseller import settings

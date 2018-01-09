@@ -27,7 +27,7 @@ class UserSerializers(serializers.ModelSerializer):
         return request.build_absolute_uri(photo)
 
     def create(self, validated_data):
-         password = validated_data.get('password')
+        password = validated_data.get('password')
         validated_data['password'] = make_password(password)
         user = accounts_models.User(**validated_data)
         user.is_active = False
