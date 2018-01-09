@@ -16,12 +16,15 @@ class AmazonAssociates(models.Model):
     country = models.ForeignKey(Country, verbose_name='amazon_country', on_delete=models.CASCADE, blank=True, null=True)
     associate_tag = models.CharField(max_length=50, null=True, blank=True)
     access_key_id = models.CharField(max_length=100, null=True, blank=True)
-    secrecy_access_key = models.CharField(max_length=100, null=True, blank=True)
+    secrect_access_key = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
 
     def __str__(self):
         return self.associate_tag
+
+    class Meta:
+        unique_together = ("country", "associate_tag")
 
 
 class EbayAssociates(models.Model):
