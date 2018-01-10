@@ -11,7 +11,6 @@ class UserSerializers(serializers.ModelSerializer):
     first_name = serializers.CharField(min_length=3, max_length=30)
     last_name = serializers.CharField(min_length=3, max_length=30)
     password = serializers.CharField(default="", write_only=True, min_length=6, max_length=12)
-    photo = serializers.SerializerMethodField('get_photo_url')
 
     class Meta:
         model = accounts_models.User
@@ -21,10 +20,11 @@ class UserSerializers(serializers.ModelSerializer):
             'username': {'read_only': True}
         }
 
-    def get_photo_url(self, obj):
-        request = self.context.get('request')
-        photo = obj.photo.url
-        return request.build_absolute_uri(photo)
+    def validate_username(self, username):
+        if self.context["request"].method != 'PUT':
+            if accounts_models.User.objects.filter(username__iexact=username).exists():
+                raise serializers.ValidationError(_("El nombre de usuario ya fue registrado"))
+        return username
     
     def create(self, validated_data):
         password = validated_data.get('password')
@@ -40,9 +40,14 @@ class UserSerializers(serializers.ModelSerializer):
         if validated_data.get('last_name'):
             instance.last_name = validated_data.get('last_name')
         if validated_data.get('username'):
+            if validated_data.get('username') == instance.username:
+                instance.username = validated_data.get('username')    
+            elif accounts_models.User.objects.filter(username__iexact=validated_data.get('username')).exists():
+                raise serializers.ValidationError({'message': [_("El nombre de usuario ya fue registrado")]})
             instance.username = validated_data.get('username')
-        if validated_data.get('password'):
-            instance.password = make_password(validated_data.get('password'))
+        if 'photo' in validated_data.keys() and validated_data.get('photo'):
+            instance.photo = validated_data.get('photo')
+        instance.save()    
         return instance
 
 class UserCreateSerializers(UserSerializers):
@@ -110,10 +115,3 @@ class UserChangePasswordSerializers(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class ProfileUserSerializers(UserSerializers):
-    username = serializers.CharField(required=True, min_length=6, max_length=12)
-    email = serializers.CharField(required=True, max_length=50)
-    first_name = serializers.CharField(min_length=3, max_length=30)
-    last_name = serializers.CharField(min_length=3, max_length=30)
-    password = serializers.CharField(required=True, write_only=True, min_length=6, max_length=12)
-    photo = serializers.SerializerMethodField('get_photo_url')

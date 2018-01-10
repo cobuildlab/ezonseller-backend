@@ -17,6 +17,7 @@ from account import serializers
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
+from rest_framework.decorators import detail_route, list_route
 import re
 #status-code-response
 STATUS = {
@@ -155,21 +156,6 @@ class RecoverPasswordView(APIView):
         return Response({'message': 'The password has been change successfully'})
 
 
-class ChangePasswordView(APIView):
-    """
-    """
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def put(self, request):
-        user = request.user
-        serializer = validations.UserChangePasswordSerializers(user, data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        user.auth_token.delete()
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({'message': 'The password has been change successfully', 'token': token.key})
-
-
 class ActivateAccountView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -199,15 +185,30 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProfileUserSerializers
     http_method_names = ['get', 'put', 'delete', 'post']
 
+    def list(self, request, *args, **kwargs):
+        queryset = account_models.User.objects.get(username=request.user)
+        serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         #serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer = validations.ProfileUserSerializers(instance, context={'request': request})
+        serializer = validations.UserSerializers(instance, data=request.data, 
+        context={'request': request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-
+    
+    @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
+    def changePassword(self, request, pk=None):
+        user = request.user
+        serializer = validations.UserChangePasswordSerializers(user, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user.auth_token.delete()
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'message': 'The password has been change successfully', 'token': token.key})
     # def perform_update(self, serializer):
     #     serializer.save()
 

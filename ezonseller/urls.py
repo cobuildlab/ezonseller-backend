@@ -32,7 +32,6 @@ urlpatterns = [
     path('accounts/register/', account_views.RegisterView.as_view()),
     path('accounts/recoverypassword/', account_views.RequestRecoverPassword.as_view()),
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
-    path('accounts/profilechangepassword/', account_views.ChangePasswordView.as_view()),
     path('', include(router.urls)),
     re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
     path('ebay/', product_views.SearchEbayView.as_view()),
