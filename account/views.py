@@ -52,7 +52,7 @@ class Login(APIView):
             try:
                 user = account_models.User.objects.get(email=username)
             except account_models.User.DoesNotExist:
-                return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
+                return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
             if not user.check_password(password):
                 band = False
         else:
@@ -61,13 +61,13 @@ class Login(APIView):
             try:
                 user_find = account_models.User.objects.get(username=username)
             except account_models.User.DoesNotExist:
-                return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
+                return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
             if not user_find.is_active:
                 return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
             else:
                 band = False
         if not band:
-            return Response({'message': 'User or pass invalid'}, status=STATUS['401'])
+            return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
         
@@ -101,7 +101,7 @@ class RegisterView(APIView):
             for i in errors_keys:
                 errors_msg.append(str(i) + ": " + str(user_serializer.errors[i][0]))
             error_msg = "".join(errors_msg)
-            return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': errors_msg[0]}, status=STATUS['400'])
         user = user_serializer.save()
         if notify_views.activate_account(user, request):
             return Response({'username': user.username, 'message': 'The email has been send'}, status=STATUS['201'])
@@ -124,7 +124,7 @@ class RequestRecoverPassword(APIView):
         except account_models.User.DoesNotExist:
             return Response({'message': 'The email not exit'}, status=STATUS['400'])
 
-        if notify_views.recover_password(user):
+        if notify_views.recover_password(user, request):
             return Response({'message': 'The email has been send'})
         return Response({'message': 'The email cannot be sent'}, status=STATUS['500'])
     

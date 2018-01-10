@@ -16,9 +16,15 @@ def pass_generator(size=20, chars=string.ascii_uppercase + string.digits):
 
 def recover_password(user):
     try:
+        current_site = get_current_site(request)
         new_password = pass_generator(20)
         to = user.email
-        data = {"msg": 'Your new password', 'code': new_password, 'username': user.username}
+        data = {
+            "msg": 'Your new password', 
+            'code': new_password, 
+            'username': user.username,
+            "domain" : current_site.domain,
+        }
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/recovery_password.html", data)
         html_content = render_to_string("email/recovery_password.html", data)
