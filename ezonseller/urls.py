@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, re_path, include
 from account import views as account_views
 from product import views as product_views
+from payment import  views as payment_views
 from rest_framework import routers
 
 
@@ -33,6 +34,7 @@ urlpatterns = [
     path('accounts/recoverypassword/', account_views.RequestRecoverPassword.as_view()),
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
     path('', include(router.urls)),
+    path('terms',payment_views.TermsConditionView.as_view()),
     re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
     path('ebay/', product_views.SearchEbayView.as_view()),
 ]
