@@ -3,6 +3,7 @@ from ezonseller.settings import MEDIA_URL, URL
 
 
 class PlanSubscriptionSerializers(serpy.Serializer):
+    id = serpy.Field()
     title = serpy.Field()
     type_plan = serpy.Field()
     cost = serpy.Field()
@@ -22,6 +23,7 @@ class TermsConditionSerializers(serpy.Serializer):
 
 
 class CreditCardSerializers(serpy.Serializer):
+    id = serpy.Field()
     name = serpy.Field()
     type_card = serpy.Field()
     number_card = serpy.Field()
@@ -31,6 +33,7 @@ class CreditCardSerializers(serpy.Serializer):
 
 
 class PaymentHistorySerializer(serpy.Serializer):
+    id = serpy.Field()
     title = serpy.Field()
     cost = serpy.Field()
     name = serpy.Field()

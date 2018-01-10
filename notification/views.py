@@ -14,7 +14,7 @@ def pass_generator(size=20, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def recover_password(user):
+def recover_password(user, request):
     try:
         current_site = get_current_site(request)
         new_password = pass_generator(20)

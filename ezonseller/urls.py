@@ -23,8 +23,9 @@ from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'accounts/profile', account_views.ProfileViewSet)
-router.register(r'product/amazon',product_views.AmazonViewSet)
+router.register(r'product/amazon', product_views.AmazonViewSet)
 router.register(r'product/ebay', product_views.EbayViewSet)
+router.register(r'payment/card', payment_views.CreditCardViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

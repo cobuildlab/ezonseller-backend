@@ -33,3 +33,46 @@ class TermsConditionView(APIView):
         serializer = serializers.TermsConditionSerializers(queryset)
         return Response(serializer.data)
 
+
+class CreditCardViewSet(viewsets.ModelViewSet):
+    queryset = CreditCard.objects.all()
+    serializer_class = serializers.CreditCardSerializers
+    http_method_names = ['get', 'put', 'delete', 'post']
+
+    def list(self, request, *args, **kwargs):
+        queryset = CreditCard.objects.filter(user=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        context = {'request': request}
+        serializer = validations.AmazonKeyValidations(data=request.data,
+                                                      context=context)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=STATUS['201'])
+
+    def update(self, request, *args, **kwargs):
+        #partial = kwargs.pop('partial', False)
+        data = request.data
+        instance = self.get_object()
+        if not data.get('associate_tag'):
+            return Response({'message': 'the amazon associate username cant be empty'}, status=STATUS['400'])
+        if not data.get('access_key_id'):
+            return Response({'message': 'The amazon access key is required'}, status=STATUS['400'])
+        if not data.get('secrect_access_key'):
+            return Response({'message': 'The amazon secrect key is required'}, status=STATUS['400'])
+        try:
+            amazon = AmazonAssociates.objects.get(associate_tag=data.get('associate_tag'))
+        except AmazonAssociates.DoesNotExist:
+            return Response({'message': 'the amazon associate username not exit'}, status=STATUS['400'])
+        amazon.access_key_id=data.get('access_key_id')
+        amazon.secrect_access_key = data.get('secrect_access_key')
+        amazon.save()
+        serializer = self.get_serializer(amazon)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({'message': 'The credit card has deleted form your account'})
