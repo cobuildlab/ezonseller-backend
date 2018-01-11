@@ -36,6 +36,7 @@ urlpatterns = [
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
     path('', include(router.urls)),
     path('terms',payment_views.TermsConditionView.as_view()),
+    path('plans', payment_views.PlanView.as_view()),
     re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
     path('ebay/', product_views.SearchEbayView.as_view()),
 ]

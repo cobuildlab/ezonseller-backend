@@ -3,7 +3,7 @@ from payment.models import PlanSubscription, PlanSubscriptionList, TermsConditio
 
 
 class CreditCardAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'name', 'number_card', 'type_card', 'date_expiration')
+    list_display = ('id', 'user', 'name', 'number_card', 'type_card', 'date_expiration', 'modified')
     search_fields = ('name',)
     list_filter = ('type_card',)
 
