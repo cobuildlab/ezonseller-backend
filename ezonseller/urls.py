@@ -35,10 +35,11 @@ urlpatterns = [
     path('accounts/recoverypassword/', account_views.RequestRecoverPassword.as_view()),
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
     path('', include(router.urls)),
-    path('terms',payment_views.TermsConditionView.as_view()),
+    path('terms', payment_views.TermsConditionView.as_view()),
     path('plans', payment_views.PlanView.as_view()),
-    re_path(r'^activate/$',account_views.ActivateAccountView.as_view()),
-    path('ebay/', product_views.SearchEbayView.as_view()),
+    re_path(r'^activate/$', account_views.ActivateAccountView.as_view()),
+    path('product/ebay-search/', product_views.SearchEbayView.as_view()),
+    path('product/amazon-search/', product_views.SearchAmazonView.as_view()),
 ]
 from django.conf.urls.static import static, serve
 from ezonseller import settings

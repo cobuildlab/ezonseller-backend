@@ -9,11 +9,12 @@ from ebaysdk.exception import ConnectionError
 from ebaysdk.finding import Connection as Finding
 import bottlenose.api
 import bottlenose
-from ezonseller.settings import AMAZON_ASSOCIATE_TAG, AMAZON_ACCESS_KEY_ID, AMAZON_SECRECT_ACCESS_KEY,EBAY_SECRECT_KEY
 from product import serializers
 from product.models import AmazonAssociates, EbayAssociates, Country
 from product import validations
+from product.pagination import paginate
 import logging
+from django.contrib.postgres.aggregates import ArrayAgg
 
 log = logging.getLogger('product.views')
 
@@ -29,68 +30,117 @@ STATUS = {
     "500": status.HTTP_500_INTERNAL_SERVER_ERROR
 }
 
+
+def category_bool(data):
+    band = True
+    category = ['All', 'Apparel', 'Appliances', 'ArtsAndCrafts', 'Automotive',
+                'Baby', 'Beauty', 'Blended', 'Books', 'Classical', 'Collectibles',
+                'DVD', 'DigitalMusic', 'Electronics', 'GiftCards', 'GourmetFood',
+                'Grocery', 'HealthPersonalCare', 'HomeGarden', 'Industrial',
+                'Jewelry', 'KindleStore', 'Kitchen', 'LawnAndGarden', 'Marketplace',
+                'MP3Downloads', 'Magazines', 'Miscellaneous', 'Music', 'MusicTracks',
+                'MusicalInstruments', 'MobileApps', 'OfficeProducts', 'OutdoorLiving',
+                'PCHardware', 'PetSupplies', 'Photo', 'Shoes', 'Software', 'SportingGoods',
+                'Tools', 'Toys', 'UnboxVideo', 'VHS', 'Video', 'VideoGames', 'Watches',
+                'Wireless', 'WirelessAccessories']
+    if not data in category:
+        band = False
+    return band
+
+
 class CountryView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    #def get(self, request):
+    #    queryset = Country.objects.all()
+    #    serializer = validations.CountrySerializers(queryset, many=True)
+    #    return Response(serializer.data)
 
     def get(self, request):
-        queryset = Country.objects.all()
-        serializer = validations.CountrySerializers(queryset, many=True)
-        return  Response(serializer.data)
+        user = request.user
+        try:
+            amazon = AmazonAssociates.objects.filter(user=user)
+        except AmazonAssociates.DoesNotExist:
+            return Response({'message': 'The user does not have any Amazon associate account'}, status=STATUS['400'])
+        aux = amazon.aggregate(arr=ArrayAgg('country'))
+        country_id = aux.get('arr')
+        queryset = Country.objects.filter(id__in=country_id)
+        serializer = serializers.CountrySerializers(queryset, many=True)
+        return Response(serializer.data)
     
 
 class SearchAmazonView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
-    def post(self, request):
-        data = request.data
-        if not data.get('keyword'):
+    def get(self, request):
+        keyword = request.GET.get('keyword')
+        country = request.GET.get('country')
+        category = request.GET.get('category')
+        limit = request.GET.get('limit', None)
+        offset = request.GET.get('offset', None)
+        if not limit:
+            return Response({'message': 'the limit is required, cant be empty'})
+        if not offset:
+            return Response({'message': 'the offset is required, cant be empty'})
+        if not keyword:
             return Response({'message': 'the title cant be empty'}, status=STATUS['400'])
-        if not data.get('country'):
+        if not country:
             return Response({'message': 'the country cant be empty'}, status=STATUS['400'])
-        if not data.get('category'):
+        if not category:
             return Response({'message': 'the category cant be empty'}, status=STATUS['400'])
 
         region_options = bottlenose.api.SERVICE_DOMAINS.keys()
         list_region =list(region_options)
-        print(list_region)
-        print(data.get('country'))
+        if not country in list_region:
+            return Response({'message': 'the country you are sending is not assigned to your account'}, status=STATUS['400'])
+        else:
+            try:
+                country_id = Country.objects.get(name=country)
+            except Country.DoesNotExist:
+                return Response({'message': 'the country does not exist'})
         try:
-            amazon = AmazonAPI(AMAZON_ACCESS_KEY_ID, AMAZON_SECRECT_ACCESS_KEY, AMAZON_ASSOCIATE_TAG, region=data.get('country'))
-        except Exception as e:
-            log.error(str(e))
+            amazon_filter = AmazonAssociates.objects.get(user=request.user, country=country_id)
+        except AmazonAssociates.DoesNotExist:
+            return Response({'message': 'You has not amazon associate assigned to your account'})
 
-        #amazon = bottlenose.Amazon(AMAZON_ACCESS_KEY_ID, AMAZON_SECRECT_ACCESS_KEY, AMAZON_ASSOCIATE_TAG, Region='UK')
-        products = amazon.search(Keywords=data.get('keyword'), SearchIndex=data.get('category'))
-        #products = amazon.ItemSearch(Keywords="Kindle 3G", SearchIndex="All")
-        print(type(products))
-        print(products)
-        #product = amazon_de.lookup(ItemId='B0051QVF7A')
-        #print(product.title)
-        for product in products:
-            print(product.asin)
-        #for i, product in enumerate(products):
-        #    print("{0}. '{1}'".format(i, product.title))
-        # print(len(product))
-        # if not product:
-        #     return Response({},status=STATUS['400'])
-        # print(product.title)
-        # print(product.price_and_currency)
-        # print(product.ean)
-        # print(product.large_image_url)
-        # print(product.get_attribute('Publisher'))
-        # print(product.get_attributes(['ItemDimensions.Width', 'ItemDimensions.Height']))
-        return Response({})
+        if not category_bool(category):
+            return Response({'message': 'The category does not exits, please send a correct category'})
+        #try:
+        amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
+        print(amazon_user.associate_tag)
+        print(amazon_user.access_key_id)
+        print(amazon_user.secrect_access_key)
+        print(amazon_user.country)
+        amazon_api = AmazonAPI(amazon_user.access_key_id,
+                               amazon_user.secrect_access_key,
+                               amazon_user.associate_tag,
+                               region=country)
+        #except:
+        #    return Response({'message': 'connection error'}, status=STATUS['500'])
+
+        products = amazon_api.search(Keywords=keyword, SearchIndex=category)
+        list_products = [product for product in products]
+        print(list_products)
+        list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
+        serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
+        return Response(serializer.data)
 
 
 class SearchEbayView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
-    def post(self, request):
-        data = request.data
-        data_aux = {}
+    def get(self, request):
+        user = request.user
+        keyword = request.GET.get('keyword')
+        if not keyword:
+            return Response({'message': 'the keyword cant be empty'})
         try:
-            ebay_api = Finding(appid=EBAY_SECRECT_KEY, config_file=None)
-            response = ebay_api.execute('findItemsAdvanced', {'keywords': data.get('item')})
+            ebay_user = EbayAssociates.objects.get(user=user)
+        except EbayAssociates.DoesNotExist:
+            return Response({'message': 'you do not have an ebay account associated to perform the search'})
+        try:
+            ebay_api = Finding(appid=ebay_user.client_id, config_file=None)
+            response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
             # print(response.content)
             elements = response.dict()
             # for element in elements:
@@ -110,6 +160,7 @@ class SearchEbayView(APIView):
             for item in items:
                 # print(item.get('title'))
                 aux.append(serializers.EbayProductSerializers(item).data)
+                break
             data_aux = aux
             # print(item.get('title'))
             # print(item.get('galleryURL'))
