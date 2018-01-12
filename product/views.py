@@ -60,7 +60,7 @@ class CountryView(APIView):
     def get(self, request):
         user = request.user
         try:
-            amazon = AmazonAssociates.objects.filter(user=user)
+            amazon = AmazonAssociates.objects.get(user=user)
         except AmazonAssociates.DoesNotExist:
             return Response({'message': 'The user does not have any Amazon associate account'}, status=STATUS['400'])
         aux = amazon.aggregate(arr=ArrayAgg('country'))

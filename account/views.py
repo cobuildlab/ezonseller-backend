@@ -213,7 +213,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        #serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer = validations.UserSerializers(instance, data=request.data, 
         context={'request': request})
         serializer.is_valid(raise_exception=True)

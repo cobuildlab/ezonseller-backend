@@ -6,6 +6,7 @@ from rest_framework import authentication, permissions
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from payment.pagination import PaymentHistoryPagination
 from payment.models import PlanSubscription, PlanSubscriptionList, TermsCondition, CreditCard, PaymentHistory
 from payment import serializers
 from payment import validations
@@ -74,3 +75,14 @@ class PlanView(APIView):
         queryset = PlanSubscription.objects.all()
         serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
         return Response(serializer.data)
+
+
+class PaymentHistoryView(ListAPIView):
+    serializer_class = serializers.PaymentHistorySerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = PaymentHistoryPagination
+
+    def get_queryset(self):
+        queryset = PaymentHistory.objects.all()
+        return queryset
+

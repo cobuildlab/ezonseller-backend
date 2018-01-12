@@ -1,5 +1,5 @@
 from django.contrib import admin
-from payment.models import PlanSubscription, PlanSubscriptionList, TermsCondition, CreditCard
+from payment import models as payment_models
 
 
 class CreditCardAdmin(admin.ModelAdmin):
@@ -25,7 +25,14 @@ class PlanSubscriptionListAdmin(admin.ModelAdmin):
     list_filter = ('created',)
 
 
-admin.site.register(CreditCard, CreditCardAdmin)
-admin.site.register(TermsCondition, TermsConditionAdmin)
-admin.site.register(PlanSubscription, PlanSubscriptionAdmin)
-admin.site.register(PlanSubscriptionList, PlanSubscriptionListAdmin)
+class PaymentHistoryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'title', 'cost', 'date_start', 'date_finish', 'created')
+    search_fields = ('title',)
+    list_filter = ('date_finish',)
+
+
+admin.site.register(payment_models.CreditCard, CreditCardAdmin)
+admin.site.register(payment_models.TermsCondition, TermsConditionAdmin)
+admin.site.register(payment_models.PlanSubscription, PlanSubscriptionAdmin)
+admin.site.register(payment_models.PlanSubscriptionList, PlanSubscriptionListAdmin)
+admin.site.register(payment_models.PaymentHistory, PaymentHistoryAdmin)
