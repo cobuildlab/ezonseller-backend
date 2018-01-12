@@ -49,4 +49,5 @@ class AmazonProfileSerializers(serpy.Serializer):
 
 class CountrySerializers(serpy.Serializer):
     name = serpy.Field()
+    code = serpy.Field()
 

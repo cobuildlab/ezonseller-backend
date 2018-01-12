@@ -1,8 +1,9 @@
 from django.db import models
-
+from django.utils.translation import ugettext_lazy as _
 
 class Country(models.Model):
-    name = models.CharField(max_length=60)
+    name = models.CharField(_('Country_name'),max_length=60, null=False)
+    code = models.CharField(_('Code'),max_length=3, blank=True, null=False)
 
     class Meta:
         ordering = ['name']

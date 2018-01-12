@@ -5,6 +5,7 @@ from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from amazon.api import AmazonAPI
+import amazon
 from ebaysdk.exception import ConnectionError
 from ebaysdk.finding import Connection as Finding
 import bottlenose.api
@@ -95,7 +96,7 @@ class SearchAmazonView(APIView):
             return Response({'message': 'the country you are sending is not assigned to your account'}, status=STATUS['400'])
         else:
             try:
-                country_id = Country.objects.get(name=country)
+                country_id = Country.objects.get(code=country)
             except Country.DoesNotExist:
                 return Response({'message': 'the country does not exist'})
         try:
@@ -107,10 +108,6 @@ class SearchAmazonView(APIView):
             return Response({'message': 'The category does not exits, please send a correct category'})
         #try:
         amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
-        print(amazon_user.associate_tag)
-        print(amazon_user.access_key_id)
-        print(amazon_user.secrect_access_key)
-        print(amazon_user.country)
         amazon_api = AmazonAPI(amazon_user.access_key_id,
                                amazon_user.secrect_access_key,
                                amazon_user.associate_tag,
@@ -119,8 +116,11 @@ class SearchAmazonView(APIView):
         #    return Response({'message': 'connection error'}, status=STATUS['500'])
 
         products = amazon_api.search(Keywords=keyword, SearchIndex=category)
-        list_products = [product for product in products]
-        print(list_products)
+        try:
+            list_products = [product for product in products]
+        except amazon.api.SearchException:
+            return Response({'message': 'We did not find any matches for your request.'})
+        
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
         return Response(serializer.data)

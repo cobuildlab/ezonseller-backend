@@ -22,7 +22,7 @@ class EbayAssociatesAdmin(admin.ModelAdmin):
 
 class CountryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
-    list_display = ('name',)
+    list_display = ('id' ,'name', 'code')
 
 
 admin.site.register(AmazonAssociates, AmazonAssociatesAdmin)
