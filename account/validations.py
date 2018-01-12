@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.hashers import make_password
 from account import models as accounts_models
+from notification import  models as notification_models
 import re
 
 
@@ -115,3 +116,22 @@ class UserChangePasswordSerializers(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class ContactSupportValidations(serializers.ModelSerializer):
+    title = serializers.CharField(required=True, max_length=40)
+    message = serializers.CharField(required=True, max_length=2000)
+    email = serializers.CharField(required=True, max_length=50)
+
+    class Meta:
+        model = notification_models.ContactSupport
+        fields = ('id', 'title', 'message', 'email',)
+
+    def validate_email(self, email):
+        if not re.search('(\w+[.|\w])*@(\w+[.])*\w+', email):
+            raise serializers.ValidationError(_(u"the email must be in the format name@email.com"))
+        return email
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        contact = notification_models.ContactSupport.objects.create(**validated_data)
+        return contact

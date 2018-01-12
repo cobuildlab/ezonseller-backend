@@ -57,3 +57,23 @@ def activate_account(user, request):
         return True
     except:
         return False
+
+
+def support_notify(user, request):
+    try:
+        current_site = get_current_site(request)
+        to = user.email
+        data = {
+            'domain': current_site.domain,
+            "msg": 'Your new password',
+            'username': user.username,
+        }
+        subject, from_email = data['msg'], EMAIL_HOST_USER
+        text_content = render_to_string("email/contact_support.html", data)
+        html_content = render_to_string("email/contact_support.html", data)
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        send.attach_alternative(html_content, "text/html")
+        send.send()
+        return True
+    except:
+        return False

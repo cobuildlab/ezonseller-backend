@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from django.contrib.auth import authenticate
 from account import models as account_models
+from notification import  models as notification_models
 from notification import views as notify_views
 from datetime import datetime
 from account import validations
@@ -163,6 +164,10 @@ class ActivateAccountView(APIView):
 
         uidb = self.request.GET.get('uidb64')
         token = self.request.GET.get('token')
+        if not uidb:
+            return Response({'message': 'The uidb is required, cant be empty'}, status=STATUS['400'])
+        if not token:
+            return Response({'message': 'the token is required, cant be empty'}, status=STATUS['400'])
         decode = uidb.strip("b")
         count = len(decode)-1
         decode = decode[1:count]
@@ -178,6 +183,21 @@ class ActivateAccountView(APIView):
             return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
         else:
             return Response({'message': 'Activation link is invalid!'}, status=STATUS['400'])
+
+
+class ContacSupportView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user_data = request.user
+        serializer = validations.ContactSupportValidations(data=request.data,
+                                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = account_models.User.objects.get(username=user_data)
+        if notify_views.support_notify(user, request):
+            return Response({'message': 'Your message has been send successfully'})
+        return Response({'message': 'Your request cannot be sent'}, status=STATUS['500'])
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -209,22 +229,3 @@ class ProfileViewSet(viewsets.ModelViewSet):
         user.auth_token.delete()
         token, created = Token.objects.get_or_create(user=user)
         return Response({'message': 'The password has been change successfully', 'token': token.key})
-    # def perform_update(self, serializer):
-    #     serializer.save()
-
-    # def partial_update(self, request, *args, **kwargs):
-    #     kwargs['partial'] = True
-    #     return self.update(request, *args, **kwargs)
-
-    # @detail_route(methods=['put',], permission_classes=(permissions.IsAuthenticated,))
-    # def contact(self, request, pk=None):
-    #     instance = self.get_object()
-    #     if not instance.contact:
-    #         serializer = accounts_serializers.ConatctSerializer(data=request.data)
-    #     else:
-    #         serializer = accounts_serializers.ConatctSerializer(instance.contact, data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     instance.contact = serializer.instance
-    #     instance.save()
-    #     return Response(serializer.data, status=200)
