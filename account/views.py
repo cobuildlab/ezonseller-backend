@@ -234,4 +234,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
         serializer.save()
         user.auth_token.delete()
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'message': 'The password has been change successfully', 'token': token.key})
+        return Response({'message': 'The password has been change successfully',
+                         'token': token.key,
+                         'id': request.user.id})

@@ -8,7 +8,7 @@ import re
 
 class UserSerializers(serializers.ModelSerializer):
     username = serializers.CharField(required=True, min_length=6, max_length=12)
-    email = serializers.CharField(required=True, max_length=50)
+    email = serializers.CharField(required=False, max_length=50)
     first_name = serializers.CharField(min_length=3, max_length=30)
     last_name = serializers.CharField(min_length=3, max_length=30)
     password = serializers.CharField(default="", write_only=True, min_length=6, max_length=12)
@@ -50,6 +50,7 @@ class UserSerializers(serializers.ModelSerializer):
             instance.photo = validated_data.get('photo')
         instance.save()    
         return instance
+
 
 class UserCreateSerializers(UserSerializers):
 
