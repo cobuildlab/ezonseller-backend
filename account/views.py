@@ -54,7 +54,7 @@ class Login(APIView):
             try:
                 user = account_models.User.objects.get(email=username)
             except account_models.User.DoesNotExist:
-                return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
+                return Response({'message': 'the user not exist'}, status=STATUS['400'])
             if not user.check_password(password):
                 band = False
         else:
@@ -63,7 +63,7 @@ class Login(APIView):
             try:
                 user_find = account_models.User.objects.get(username=username)
             except account_models.User.DoesNotExist:
-                return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
+                return Response({'message': 'the user not exist'}, status=STATUS['400'])
             if not user_find.is_active:
                 return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
             else:
@@ -80,10 +80,17 @@ class Logout(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, ):
-        try:
-            user = account_models.User.objects.get(username=request.data.get('username'))
-        except account_models.User.DoesNotExist:
-            return Response({'response': 'The user not exist'}, status=STATUS['400'])
+        user_logout = request.data.get('username')
+        if re.search('(\w+[.|\w])*@(\w+[.])*\w+', user_logout):
+            try:
+                user = account_models.User.objects.get(email=user_logout)
+            except account_models.User.DoesNotExist:
+                return Response({'message': 'The user not exist'}, status=STATUS['400'])
+        else:
+            try:
+                user = account_models.User.objects.get(username=user_logout)
+            except account_models.User.DoesNotExist:
+                return Response({'message': 'The user not exist'}, status=STATUS['400'])
         user.last_login = datetime.now()
         user.save()
         user.auth_token.delete()
@@ -124,7 +131,7 @@ class RequestRecoverPassword(APIView):
         try:
             user = account_models.User.objects.get(email=email)
         except account_models.User.DoesNotExist:
-            return Response({'message': 'The email not exit'}, status=STATUS['400'])
+            return Response({'message': 'The email not exist in database'}, status=STATUS['400'])
 
         if notify_views.recover_password(user, request):
             return Response({'message': 'The email has been send'})
