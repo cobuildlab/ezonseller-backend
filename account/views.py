@@ -224,7 +224,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
         context={'request': request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data)
+        response_data = serializer.data
+        response_data['message'] = 'Your profile has been updated successfully'
+        return Response(response_data)
     
     @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
     def changePassword(self, request, pk=None):

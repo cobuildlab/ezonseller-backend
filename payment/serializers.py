@@ -33,10 +33,12 @@ class CreditCardSerializers(serpy.Serializer):
     id = serpy.Field()
     name = serpy.Field()
     type_card = serpy.Field()
-    number_card = serpy.Field()
-    cod_security = serpy.Field()
-    date_creation = serpy.Field()
+    number_card = serpy.MethodField()
     date_expiration = serpy.Field()
+
+    def get_number_card(self, obj):
+        limitate = obj.number_card[-4:]
+        return limitate
 
 
 class PaymentHistorySerializer(serpy.Serializer):

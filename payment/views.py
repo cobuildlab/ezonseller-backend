@@ -35,6 +35,16 @@ class TermsConditionView(APIView):
         return Response(serializer.data)
 
 
+class PurchasePlanView(APIView):
+    permission_classes = (permissions.IsAuthenticated)
+
+    def post(self, request):
+        return Response({})
+
+    def put(self, request):
+        return Response({})
+
+
 class CreditCardViewSet(viewsets.ModelViewSet):
     queryset = CreditCard.objects.all()
     serializer_class = serializers.CreditCardSerializers
@@ -60,7 +70,9 @@ class CreditCardViewSet(viewsets.ModelViewSet):
         context={'request': request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data)
+        response_data = serializer.data
+        response_data['message'] = 'the information of your credit card has been updated successfully'
+        return Response(response_data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
