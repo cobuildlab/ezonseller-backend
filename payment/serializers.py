@@ -43,7 +43,11 @@ class CreditCardSerializers(serpy.Serializer):
 
 class PaymentHistorySerializer(serpy.Serializer):
     id = serpy.Field()
+    user = serpy.MethodField()
     title = serpy.Field()
     cost = serpy.Field()
     date_start = serpy.Field()
     date_finish = serpy.Field()
+
+    def get_user(self, obj):
+        return obj.user.username

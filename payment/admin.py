@@ -14,7 +14,7 @@ class TermsConditionAdmin(admin.ModelAdmin):
 
 
 class PlanSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'type_plan', 'created', 'modified')
+    list_display = ('id', 'title', 'type_plan', 'duration', 'created', 'modified')
     search_fields = ('title',)
     list_filter = ('created', 'type_plan',)
 

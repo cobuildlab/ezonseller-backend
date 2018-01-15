@@ -12,6 +12,8 @@ from payment import serializers
 from payment import validations
 from account.models import User
 from datetime import datetime
+from datetime import timedelta
+from  calendar import isleap
 from rest_framework.decorators import detail_route, list_route
 
 STATUS = {
@@ -26,6 +28,31 @@ STATUS = {
 }
 
 
+def add_years(d, years):
+    new_year = d.year + years
+    try:
+        return d.replace(year=new_year)
+    except ValueError:
+        if d.month == 2 and d.day == 29 and isleap(d.year) and not isleap(new_year):
+            return d.replace(year=new_year, day=28)
+        raise
+
+
+def extract_date(date):
+    number = date[0:1]
+    string = date[2:]
+    mounths = {'1': 5, '3': 15, '6': 30}
+    years = {'1': 1, '2': 2, '3': 3}
+    now = datetime.now()
+    if string == 'mounth':
+        mount = mounths[number]
+        endDate = now + timedelta(6*mount)
+    if string == 'year':
+        year = years[number]
+        endDate = add_years(now, year)
+    return endDate
+
+
 class TermsConditionView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -36,10 +63,42 @@ class TermsConditionView(APIView):
 
 
 class PurchasePlanView(APIView):
-    permission_classes = (permissions.IsAuthenticated)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        return Response({})
+        plan_id = request.data.get('id_plan')
+        card_id = request.data.get('id_card')
+        accept = request.data.get('accept')
+        if accept == 'False':
+            return Response({'message': 'You must accept the terms and conditions'}, status=STATUS['400'])
+        try:
+            plan = PlanSubscription.objects.get(id=plan_id)
+        except PlanSubscription.DoesNotExist:
+            return Response({'message': 'the plan does not exist'}, status=STATUS['400'])
+        try:
+            user = User.objects.get(username=request.user)
+            card = CreditCard.objects.get(user=user, id=card_id)
+        except CreditCard.DoesNotExist:
+            return Response(
+                {'message': 'the credit card with you buy this plan dont belong a your account, or not exist'},
+                status=STATUS['400']
+            )
+        plan_finish = extract_date(plan.duration)
+
+        payment = PaymentHistory.objects.create(
+            user=user,
+            title=plan.title,
+            cost=plan.cost,
+            name=card.name,
+            number_card=card.number_card,
+            cod_security=card.cod_security,
+            date_expiration=card.date_expiration,
+            date_start=datetime.now(),
+            date_finish=plan_finish,
+            accept=True
+        )
+        serializer = serializers.PaymentHistorySerializer(payment, many=False)
+        return Response(serializer.data, status=STATUS['201'])
 
     def put(self, request):
         return Response({})
@@ -97,4 +156,5 @@ class PaymentHistoryView(ListAPIView):
     def get_queryset(self):
         queryset = PaymentHistory.objects.all()
         return queryset
+
 

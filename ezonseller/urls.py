@@ -39,6 +39,7 @@ urlpatterns = [
     path('terms', payment_views.TermsConditionView.as_view()),
     path('payment/plans', payment_views.PlanView.as_view()),
     path('payment/history', payment_views.PaymentHistoryView.as_view()),
+    path('payment/purchase/', payment_views.PurchasePlanView.as_view()),
     path('country', product_views.CountryView.as_view()),
     re_path(r'^activate/$', account_views.ActivateAccountView.as_view()),
     path('product/ebay-search/', product_views.SearchEbayView.as_view()),

@@ -1,6 +1,21 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+FIRST_DURATION = '1 mounth'
+SECOND_DURATION = '3 mounth'
+THIRD_DURATION = '6 mounth'
+FOURTH_DURATION = '1 year'
+FIFTH_DURATION = '2 year'
+SIX_DURATION = '3 year'
+PLAN_DURATION = (
+    (FIRST_DURATION, _('1 mounth')),
+    (SECOND_DURATION, _('3 mounth')),
+    (THIRD_DURATION, _('6 mounth')),
+    (FOURTH_DURATION, _('1 year')),
+    (FIFTH_DURATION, _('2 year')),
+    (SIX_DURATION, _('3 year')),
+    )
+
 
 class PlanSubscription(models.Model):
     title = models.CharField(_('Title'), max_length=100, blank=False, null=False)
@@ -9,6 +24,7 @@ class PlanSubscription(models.Model):
     image = models.ImageField(_('image'), blank=True, null=True)
     cost = models.FloatField(_('Plan_Cost'), default=0)
     description = models.TextField(_('Description'), null=False)
+    duration = models.CharField(_('Duration'), choices=PLAN_DURATION, max_length=50, blank=True, null=True)
     terms = models.TextField(_('TermsCondition'), null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
@@ -56,7 +72,6 @@ class CreditCard(models.Model):
     type_card = models.CharField(_('Type_Card'), choices=TYPE_CARD, max_length=20, null=False)
     number_card = models.CharField(_('Number_Card'), max_length=20, null=False)
     cod_security = models.CharField(_('Code_Security'), max_length=4, null=False)
-    date_creation = models.DateField(null=False)
     date_expiration = models.DateField(null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
@@ -75,7 +90,6 @@ class PaymentHistory(models.Model):
     name = models.CharField(_('Name'), max_length=50, null=False)
     number_card = models.CharField(_('Number_Card'), max_length=20, null=False)
     cod_security = models.CharField(_('Cod_Security'), max_length=4, null=False)
-    date_creation = models.DateField(null=False)
     date_expiration = models.DateField(null=False)
     date_start = models.DateTimeField(null=False)
     date_finish = models.DateTimeField(null=False)

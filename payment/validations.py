@@ -10,13 +10,12 @@ class CreditCardValidations(serializers.ModelSerializer):
     type_card = serializers.CharField(required=True, max_length=20)
     number_card = serializers.CharField(required=True, min_length=6, max_length=20)
     cod_security = serializers.CharField(required=True, max_length=4)
-    date_creation = serializers.DateField()
     date_expiration = serializers.DateField()
 
     class Meta:
         model = CreditCard
-        fields = ('id','name', 'type_card', 'number_card', 'cod_security',
-                  'date_creation', 'date_expiration')
+        fields = ('id', 'name', 'type_card', 'number_card', 'cod_security',
+                  'date_expiration')
 
     def validate_number_card(self, number_card):
         if self.context["request"].method != 'PUT':
