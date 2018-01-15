@@ -9,11 +9,11 @@ FIFTH_DURATION = '2 year'
 SIX_DURATION = '3 year'
 PLAN_DURATION = (
     (FIRST_DURATION, _('1 mounth')),
-    (SECOND_DURATION, _('3 mounth')),
-    (THIRD_DURATION, _('6 mounth')),
-    (FOURTH_DURATION, _('1 year')),
-    (FIFTH_DURATION, _('2 year')),
-    (SIX_DURATION, _('3 year')),
+    #(SECOND_DURATION, _('3 mounth')),
+    #(THIRD_DURATION, _('6 mounth')),
+    #(FOURTH_DURATION, _('1 year')),
+    #(FIFTH_DURATION, _('2 year')),
+    #(SIX_DURATION, _('3 year')),
     )
 
 
@@ -24,7 +24,7 @@ class PlanSubscription(models.Model):
     image = models.ImageField(_('image'), blank=True, null=True)
     cost = models.FloatField(_('Plan_Cost'), default=0)
     description = models.TextField(_('Description'), null=False)
-    duration = models.CharField(_('Duration'), choices=PLAN_DURATION, max_length=50, blank=True, null=True)
+    duration = models.CharField(_('Duration'), choices=PLAN_DURATION, default=FIRST_DURATION , max_length=50, blank=True, null=True)
     terms = models.TextField(_('TermsCondition'), null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)

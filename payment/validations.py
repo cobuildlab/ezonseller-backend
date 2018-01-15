@@ -38,18 +38,12 @@ class CreditCardValidations(serializers.ModelSerializer):
             raise serializers.ValidationError({'message': [_('The number card is required')]})
         if not attrs.get('cod_security'):
             raise serializers.ValidationError({'message': [_('The security code is required')]})
-        if not attrs.get('date_creation'):
-            raise serializers.ValidationError({'message': [_('the date of creation is required')]})
         if not attrs.get('date_expiration'):
             raise serializers.ValidationError({'message': [_('the date of creation is required')]})
         return attrs
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        date_creation = validated_data.get('date_creation')
-        date_expiration = validated_data.get('date_expiration')
-        if date_expiration < date_creation:
-            raise serializers.ValidationError({'message': [_('The expiration date of the credit card can not be greater than the date of creation')]})
         card = CreditCard.objects.create(**validated_data)
         return card
 
@@ -66,14 +60,11 @@ class CreditCardValidations(serializers.ModelSerializer):
             instance.number_card = validated_data.get('number_card')    
         if validated_data.get('cod_security'):
             instance.cod_security = validated_data.get('cod_security')
-        if validated_data.get('date_creation'):
-            instance.date_creation = validated_data.get('date_creation')
         if validated_data.get('date_expiration'):
-            if validated_data.get('date_expiration') < instance.date_creation:
-                raise serializers.ValidationError({'message':[_('The expiration date of the credit card can not be greater than the date of creation')]})
             instance.date_expiration = validated_data.get('date_expiration')
         instance.save()
         return instance
+
 
 class CreditCardCreateValidations(CreditCardValidations):
 

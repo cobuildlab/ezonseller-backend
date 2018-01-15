@@ -227,7 +227,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
         response_data = serializer.data
         response_data['message'] = 'Your profile has been updated successfully'
         return Response(response_data)
-    
+
+    @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
+    def uploadImage(self, request, pk=None):
+        user = account_models.User.objects.get(username=request.user)
+        if not request.data.get('photo'):
+            return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
+        user.photo = request.data['photo']
+        user.save()
+        serializer = serializers.ProfileUserSerializers(user, many=False)
+        return Response(serializer.data)
+
     @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
     def changePassword(self, request, pk=None):
         user = request.user

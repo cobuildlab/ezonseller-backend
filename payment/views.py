@@ -100,9 +100,6 @@ class PurchasePlanView(APIView):
         serializer = serializers.PaymentHistorySerializer(payment, many=False)
         return Response(serializer.data, status=STATUS['201'])
 
-    def put(self, request):
-        return Response({})
-
 
 class CreditCardViewSet(viewsets.ModelViewSet):
     queryset = CreditCard.objects.all()
