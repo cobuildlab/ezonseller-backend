@@ -20,20 +20,29 @@ class ProfileUserSerializers(serpy.Serializer):
         return(URL+MEDIA_URL+str(obj.photo))
 
     def get_plan_subscription(self, obj):
+        image = ''
         arrpayments = []
         data = []
-        payments = PaymentHistory.objects.filter(user=obj)
+        payments = PaymentHistory.objects.filter(user=obj).order_by('-id')
         for payment in payments:
+            if payment.accept == False:
+                return arrpayments
+            if payment.image != None:
+                image = URL+MEDIA_URL+str(payment.image)
+            else:
+                image = ''
             data = {
                 'id': payment.id,
                 'title': payment.title,
-                'image': URL+MEDIA_URL+str(payment.image),
+                'image': image,
                 'description': payment.description, 
                 'date_start': payment.date_start,
                 'date_finish': payment.date_finish,
                 'purchase': payment.accept,
+                'automatic_payment': payment.automatic_payment,
             }
             arrpayments.append(data)
+            break
         return arrpayments
     
     def get_credit_cards(self, obj):

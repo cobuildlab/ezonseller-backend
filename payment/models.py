@@ -45,6 +45,36 @@ class PlanSubscriptionList(models.Model):
         return self.title
 
 
+class CancelSubscriptionList(models.Model):
+    title = models.CharField(_('Title'), max_length=100, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
+
+    def __str__(self):
+        return self.title
+
+
+class CancelSubscriptionEdition(models.Model):
+    description = models.TextField(_('Description'), null=False)
+    list = models.ManyToManyField('CancelSubscriptionList', verbose_name=_('CancelSubscriptionList'), blank=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class CancelSubscription(models.Model):
+    user = models.ForeignKey('account.User', related_name='cancel_user', on_delete=models.CASCADE, blank=True, null=True)
+    plan = models.ForeignKey('PlanSubscription', related_name='cancel_plan', on_delete=models.CASCADE, blank=True, null=True)
+    reason = models.CharField(_('Description'), max_length=255, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
+
+    def __str__(self):
+        return self.reason
+
+
 class TermsCondition(models.Model):
     description = models.TextField(_('Description'), blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
@@ -98,6 +128,7 @@ class PaymentHistory(models.Model):
     date_start = models.DateTimeField(null=False)
     date_finish = models.DateTimeField(null=False)
     accept = models.BooleanField(_('Accept'), default=False, help_text=_('Accept the plan?'))
+    automatic_payment = models.BooleanField(_('Automatic'), default=False, help_text=_('Accept the automatic payment?'))
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
 

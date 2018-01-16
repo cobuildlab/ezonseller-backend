@@ -7,13 +7,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from payment.pagination import PaymentHistoryPagination
-from payment.models import PlanSubscription, PlanSubscriptionList, TermsCondition, CreditCard, PaymentHistory
+from payment.models import PlanSubscription, PlanSubscriptionList, \
+    TermsCondition, CreditCard, PaymentHistory, CancelSubscription, CancelSubscriptionEdition
 from payment import serializers
 from payment import validations
 from account.models import User
 from datetime import datetime
 from datetime import timedelta
-from  calendar import isleap
+from calendar import isleap
+import re
 from rest_framework.decorators import detail_route, list_route
 
 STATUS = {
@@ -69,8 +71,20 @@ class PurchasePlanView(APIView):
         plan_id = request.data.get('id_plan')
         card_id = request.data.get('id_card')
         accept = request.data.get('accept')
+        automatic = request.data.get('automatic')
+        if not plan_id:
+            return Response({'message': 'the plan id cant be empty'}, status=STATUS['400'])
+        if not card_id:
+            return Response({'message': 'the credit card id cant be empty'}, status=STATUS['400'])
+        if not accept:
+            return Response({'message': 'the accept term and coditions cant be empty'}, status=STATUS['400'])
+        if not automatic:
+            return Response({'message': 'the payment automatic cant be empty'}, status=STATUS['400'])
+        
         if accept == 'False':
             return Response({'message': 'You must accept the terms and conditions'}, status=STATUS['400'])
+        if not automatic == 'True' and not automatic == "False":
+            return Response({'message': 'this field only contains true or false'},status=STATUS['400'])
         try:
             plan = PlanSubscription.objects.get(id=plan_id)
         except PlanSubscription.DoesNotExist:
@@ -87,20 +101,56 @@ class PurchasePlanView(APIView):
 
         payment = PaymentHistory.objects.create(
             user=user,
+            id_plan=plan.id,
             title=plan.title,
             cost=plan.cost,
-            image = plan.image,
+            image=plan.image,
             description = plan.description,
+            id_card=card.id,
             name=card.name,
             number_card=card.number_card,
             cod_security=card.cod_security,
             date_expiration=card.date_expiration,
             date_start=datetime.now(),
             date_finish=plan_finish,
-            accept=True
+            accept=True,
+            automatic_payment=automatic 
         )
         serializer = serializers.PaymentHistorySerializer(payment, many=False)
         return Response(serializer.data, status=STATUS['201'])
+
+
+class CancelSubscriptionView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        query = CancelSubscriptionEdition.objects.all()
+        serializer = serializers.CancelSubscriptionSerializers(query, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        data = request.data
+        user = User.objects.get(id=request.user.id)
+        if not data.get('id_plan'):
+            return Response({'message': 'the request with the plan id cant be empty'})
+        if not data.get('reason'):
+            return Response({'message': 'the reason to cancel the plan cant be empty'})
+        try:
+            plan = PlanSubscription.objects.get(id=data.get('id_plan'))
+        except PlanSubscription.DoesNotExist:
+            return Response({'message': 'the plan does not exist'}, status=STATUS['400'])
+
+        payments = PaymentHistory.objects.filter(user=user, id_plan=plan.id).order_by('-id')[:1]
+        user_payment = payments[0]
+        user_payment.accept = False
+        user_payment.automatic_payment = False
+        user_payment.save()
+        cancel = CancelSubscription.objects.get_or_create(
+            user=user,
+            plan=plan,
+            reason=data.get('reason'),
+        )
+        return Response({'message': 'the cancel subscription of plan has been accept successfully'})
 
 
 class CreditCardViewSet(viewsets.ModelViewSet):
@@ -142,19 +192,9 @@ class PlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     
     def get(self, request):
-        data = {}
-        user_id = request.user.id
-        user = User.objects.get(id=user_id)    
         queryset = PlanSubscription.objects.all()
-        print(queryset)
-        plan_id = [query.id for query in queryset]
-        payment = PaymentHistory.objects.filter(user=user, id_plan__in=plan_id)
-        print(payment)
-        if len(payment)==0:
-            serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
-            return Response(serializer.data)
-        else:
-            return Response({})
+        serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
+        return Response(serializer.data)
 
 
 class PaymentHistoryView(ListAPIView):

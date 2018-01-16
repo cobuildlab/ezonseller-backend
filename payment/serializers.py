@@ -30,6 +30,19 @@ class TermsConditionSerializers(serpy.Serializer):
     description = serpy.Field()
 
 
+class CancelSubscriptionSerializers(serpy.Serializer):
+    id = serpy.Field()
+    description = serpy.Field()
+    list = serpy.MethodField()
+
+    def get_list(self, obj):
+        data = []
+        arrs = obj.list.all()
+        for arr in arrs:
+            data.append(arr.title)
+        return data
+
+
 class CreditCardSerializers(serpy.Serializer):
     id = serpy.Field()
     name = serpy.Field()
