@@ -89,6 +89,8 @@ class PurchasePlanView(APIView):
             user=user,
             title=plan.title,
             cost=plan.cost,
+            image = plan.image,
+            description = plan.description,
             name=card.name,
             number_card=card.number_card,
             cod_security=card.cod_security,
@@ -140,9 +142,19 @@ class PlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     
     def get(self, request):
+        data = {}
+        user_id = request.user.id
+        user = User.objects.get(id=user_id)    
         queryset = PlanSubscription.objects.all()
-        serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
-        return Response(serializer.data)
+        print(queryset)
+        plan_id = [query.id for query in queryset]
+        payment = PaymentHistory.objects.filter(user=user, id_plan__in=plan_id)
+        print(payment)
+        if len(payment)==0:
+            serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            return Response({})
 
 
 class PaymentHistoryView(ListAPIView):

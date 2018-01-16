@@ -9,6 +9,7 @@ class PlanSubscriptionSerializers(serpy.Serializer):
     type_plan = serpy.Field()
     cost = serpy.Field()
     description = serpy.Field()
+    duration = serpy.Field()
     terms = serpy.Field()
     image = serpy.MethodField()
 
