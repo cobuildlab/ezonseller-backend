@@ -91,6 +91,9 @@ class PurchasePlanView(APIView):
             return Response({'message': 'the plan does not exist'}, status=STATUS['400'])
         try:
             user = User.objects.get(username=request.user)
+            user.type_plan = plan.title
+            user.id_plan = plan.id
+            user.save()
             card = CreditCard.objects.get(user=user, id=card_id)
         except CreditCard.DoesNotExist:
             return Response(

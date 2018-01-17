@@ -14,6 +14,8 @@ class User(AbstractUser):
     type = models.CharField(_('Type'), choices=TYPE_USER, max_length=20, default=USER_NORMAL)
     recovery = models.CharField(max_length=40, blank=True)
     photo = models.ImageField(_('Photo'), blank=True, null=True)
+    type_plan = models.CharField(_('Plan'), max_length=50, default='Free', blank=False, null=False)
+    id_plan = models.IntegerField(default=0)
 
     def __str__(self):
         return self.username

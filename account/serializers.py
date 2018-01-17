@@ -10,6 +10,8 @@ class ProfileUserSerializers(serpy.Serializer):
     first_name = serpy.Field()
     last_name = serpy.Field()
     email = serpy.Field()
+    type_plan = serpy.Field()
+    id_plan = serpy.Field()
     photo = serpy.MethodField()
     credit_cards = serpy.MethodField()
     plan_subscription = serpy.MethodField()
