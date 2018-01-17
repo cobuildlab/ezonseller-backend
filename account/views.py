@@ -19,6 +19,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.parsers import FormParser,MultiPartParser, FileUploadParser
 import re
 #status-code-response
 STATUS = {
@@ -228,12 +229,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
         response_data['message'] = 'Your profile has been updated successfully'
         return Response(response_data)
 
-    @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
+    @detail_route(methods=['post'], permission_classes=(permissions.IsAuthenticated,))
     def uploadImage(self, request, pk=None):
         user = account_models.User.objects.get(username=request.user)
         if not request.data.get('photo'):
-            return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
-        user.photo = request.data['photo']
+             return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
+        user.photo = request.data.get('photo')
         user.save()
         serializer = serializers.ProfileUserSerializers(user, many=False)
         return Response(serializer.data)

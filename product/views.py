@@ -114,13 +114,11 @@ class SearchAmazonView(APIView):
                                region=country)
         #except:
         #    return Response({'message': 'connection error'}, status=STATUS['500'])
-
         products = amazon_api.search(Keywords=keyword, SearchIndex=category)
         try:
             list_products = [product for product in products]
         except amazon.api.SearchException:
             return Response({'message': 'We did not find any matches for your request.'})
-        
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
         return Response(serializer.data)

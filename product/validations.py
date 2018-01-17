@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from product.models import AmazonAssociates, EbayAssociates, Country
 from django.utils.translation import ugettext_lazy as _
+import amazon
 
 
 class CountrySerializers(serializers.ModelSerializer):
@@ -44,8 +45,21 @@ class AmazonKeyValidations(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        amazon = AmazonAssociates.objects.create(**validated_data)
-        return amazon
+        country = Country.objects.get(id=validated_data.get('country_id'))
+        amazon_api = amazon.api.AmazonAPI(validated_data.get('access_key_id'),
+                           validated_data.get('secrect_access_key'),
+                           validated_data.get('associate_tag'),
+                           region=country.code)
+        products = amazon_api.search(Keywords='iphone', SearchIndex='All')
+        try:
+            for product in products:
+                print(product.title)
+                break
+        except:
+            raise serializers.ValidationError({"message":
+                            [_(u"the amazon associate username not exist or the country with you associate does not exist")]})
+        amazon_api = AmazonAssociates.objects.create(**validated_data)
+        return amazon_api
 
     # def update(self, instance, validated_data):
     #     country = validated_data.pop('country_id')

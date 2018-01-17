@@ -39,7 +39,8 @@ DEBUG = True
 #    DEBUG = False
 
 ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com',
-                 'localhost', '127.0.0.1:8000', '127.0.0.1','127.0.0.1:8080','ezonseller.herokuapp.com']
+                 'localhost', '127.0.0.1:8000', '127.0.0.1', '127.0.0.1:8080',
+                 'ezonseller.herokuapp.com', '0.0.0.0:8080', '0.0.0.0', '192.168.0.14']
 
 
 # Application definition
@@ -199,6 +200,8 @@ CORS_ORIGIN_WHITELIST = (
      '127.0.0.1:8080',
      'localhost:3000',
      '127.0.0.1:3000',
+     'localhost:3001',
+     '127.0.0.1:3001',
      '0.0.0.0:8080',
      'https://ezonseller.herokuapp.com/',
      'ezonseller.herokuapp.com'
