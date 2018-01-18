@@ -40,7 +40,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com',
                  'localhost', '127.0.0.1:8000', '127.0.0.1', '127.0.0.1:8080',
-                 'ezonseller.herokuapp.com', '0.0.0.0:8080', '0.0.0.0', '192.168.0.14']
+                 'ezonseller.herokuapp.com', '0.0.0.0:8080', '0.0.0.0', '192.168.0.16']
 
 
 # Application definition
@@ -136,7 +136,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'workdeveloper2000@gmail.com'
-EMAIL_HOST_PASSWORD = 'carlos1992'
+EMAIL_HOST_PASSWORD = '7410136205car1992'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

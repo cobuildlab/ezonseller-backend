@@ -4,18 +4,22 @@ from product.models import Country
 
 class EbayProductSerializers(serpy.Serializer):
     title = serpy.Field()
-    #condition = serpy.Field()
     country = serpy.Field()
     galleryURL = serpy.Field()
     #get = serpy.Field()
     globalId = serpy.Field()
     itemId = serpy.Field()
-    #listingInfo = serpy.Field()
     location = serpy.Field()
-    postalCode = serpy.Field()
-    #sellingStatus= serpy.Field()
-    #sellingStatus(contains:.convertedCurrentPrice,.currentPrice,.sellingState,.timeLeft)
+    sellingStatus = serpy.MethodField()
     viewItemURL = serpy.Field()
+
+    def get_sellingStatus(self, obj):
+        items = {}
+        item = obj.get('sellingStatus')
+        price = item.get('currentPrice')
+        items = {'values': price.get('value'), 'currency': price.get('_currencyId')}
+        return items
+
 
 class EbayProfileSerializers(serpy.Serializer):
     id = serpy.Field()

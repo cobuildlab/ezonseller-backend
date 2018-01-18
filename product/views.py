@@ -118,7 +118,7 @@ class SearchAmazonView(APIView):
         try:
             list_products = [product for product in products]
         except amazon.api.SearchException:
-            return Response({'message': 'We did not find any matches for your request.'})
+            return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
         return Response(serializer.data)
@@ -130,6 +130,12 @@ class SearchEbayView(APIView):
     def get(self, request):
         user = request.user
         keyword = request.GET.get('keyword')
+        limit = request.GET.get('limit', None)
+        offset = request.GET.get('offset', None)
+        if not limit:
+            return Response({'message': 'the limit is required, cant be empty'})
+        if not offset:
+            return Response({'message': 'the offset is required, cant be empty'})
         if not keyword:
             return Response({'message': 'the keyword cant be empty'})
         try:
@@ -139,34 +145,19 @@ class SearchEbayView(APIView):
         try:
             ebay_api = Finding(appid=ebay_user.client_id, config_file=None)
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
-            # print(response.content)
             elements = response.dict()
-            # for element in elements:
-            # print(elements.searchResult.item[0])
-            # print(element.)
-            # element.get('timestamp')
-            # element.get('itemSearchURL')
-            # element.get('searchResult')
-            # element.get('paginationOutput')
-            # element.get('ack')
-            # element.get('version')
-            # break
+            if elements.get('searchResult').get('_count') == '0':
+                return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
             items = response.reply.searchResult.item
             print(len(items))
-            print(type(items))
-            aux = []
-            for item in items:
-                # print(item.get('title'))
-                aux.append(serializers.EbayProductSerializers(item).data)
-                break
-            data_aux = aux
-            # print(item.get('title'))
-            # print(item.get('galleryURL'))
-            # print(item.get('viewItemURL'))
+            list_products = [item for item in items]
+            list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
+            serializer = serializers.EbayProductSerializers(list_paginated, many=True)
+            return Response(serializer.data)
         except ConnectionError as e:
-            print(e)
-            print(e.response.dict())
-        return Response(data_aux)
+            #print("conecction error",e)
+            #print("conecction dic",e.response.dict())
+            return Response({'message', e}, status=STATUS['400'])
 
 
 class AmazonViewSet(viewsets.ModelViewSet):

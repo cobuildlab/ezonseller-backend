@@ -2,6 +2,8 @@ from rest_framework import serializers
 from product.models import AmazonAssociates, EbayAssociates, Country
 from django.utils.translation import ugettext_lazy as _
 import amazon
+from ebaysdk.exception import ConnectionError
+from ebaysdk.finding import Connection as Finding
 
 
 class CountrySerializers(serializers.ModelSerializer):
@@ -90,5 +92,12 @@ class EbayKeyValidations(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
+        ebay_id = validated_data.get('client_id')
+        try:
+            ebay_search = Finding(appid=ebay_id, config_file=None)
+            response = ebay_search.execute('findItemsAdvanced', {'keywords': 'iphone'})
+        except ConnectionError as e:
+            raise serializers.ValidationError({'message':
+                                [_(u"The ebay client_id does not exist in domain Ebay, please register another ID")]})
         ebay = EbayAssociates.objects.create(**validated_data)
         return ebay
