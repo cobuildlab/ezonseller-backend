@@ -30,7 +30,7 @@ AMAZON_ASSOCIATE_TAG = 'ezonseller-20'
 AMAZON_ACCESS_KEY_ID = 'AKIAJNSQTMKQ2VCLMZPQ'
 AMAZON_SECRECT_ACCESS_KEY = 'g870VvsBmBbb5YuWrmME7hJ/ZgIc12wtHdfm6q5I'
 EBAY_SECRECT_KEY = 'carlosol-ezonsell-PRD-051ca6568-e7f40784'
-URL = 'http://127.0.0.1:8000'
+URL = 'https://ezonseller-backend.herokuapp.com/'
 # SECURITY WARNING: don't run with debug turned on in production!
 
 #if env('DEBUG') == "True":
