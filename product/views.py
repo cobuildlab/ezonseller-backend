@@ -16,6 +16,8 @@ from product import validations
 from product.pagination import paginate
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.core.cache import cache
+from django.core.cache import caches
 
 log = logging.getLogger('product.views')
 
@@ -68,7 +70,7 @@ class CountryView(APIView):
         queryset = Country.objects.filter(id__in=country_id)
         serializer = serializers.CountrySerializers(queryset, many=True)
         return Response(serializer.data)
-    
+
 
 class SearchAmazonView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -106,8 +108,22 @@ class SearchAmazonView(APIView):
 
         if not category_bool(category):
             return Response({'message': 'The category does not exits, please send a correct category'})
-        #try:
         amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
+        if request.user.type_plan == 'Free':
+            #caches['default'].make_key('test_key')
+            cache_key = 'amazon-key'
+            amazon_search = cache.get(cache_key)
+            print(amazon_search)
+            if amazon_search == None:
+                print('entro if')
+                amazon_search = amazon_user.limit
+                cache.set(cache_key,amazon_search, None)
+            else:
+                print('entro else')
+                cache.decr(cache_key)
+                print("value cache",cache.get(cache_key))
+            return Response({})
+        #try:
         amazon_api = AmazonAPI(amazon_user.access_key_id,
                                amazon_user.secrect_access_key,
                                amazon_user.associate_tag,
@@ -122,6 +138,12 @@ class SearchAmazonView(APIView):
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
         return Response(serializer.data)
+
+    def reload_cache(self):
+        amazon_cache = "realze idea"
+        cache.delete('amazon-key')
+        cache.set('airports', airport_cache, None)
+
 
 
 class SearchEbayView(APIView):

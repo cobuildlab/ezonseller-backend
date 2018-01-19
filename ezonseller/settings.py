@@ -30,7 +30,7 @@ AMAZON_ASSOCIATE_TAG = 'ezonseller-20'
 AMAZON_ACCESS_KEY_ID = 'AKIAJNSQTMKQ2VCLMZPQ'
 AMAZON_SECRECT_ACCESS_KEY = 'g870VvsBmBbb5YuWrmME7hJ/ZgIc12wtHdfm6q5I'
 EBAY_SECRECT_KEY = 'carlosol-ezonsell-PRD-051ca6568-e7f40784'
-URL = 'https://ezonseller-backend.herokuapp.com/'
+URL = 'https://ezonseller-backend.herokuapp.com'
 # SECURITY WARNING: don't run with debug turned on in production!
 
 #if env('DEBUG') == "True":
@@ -79,6 +79,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'ezonseller.urls'
@@ -178,6 +180,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DATETIME_FORMAT': "%d-%m-%Y %H:%M:%S",
+}
+
+#cache
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
 }
 
 #Django-CORS
