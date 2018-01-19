@@ -51,19 +51,21 @@ def category_bool(data):
     return band
 
 
+class CountryListView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+       queryset = Country.objects.all()
+       serializer = validations.CountrySerializers(queryset, many=True)
+       return Response(serializer.data)
+
 class CountryView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
-    #def get(self, request):
-    #    queryset = Country.objects.all()
-    #    serializer = validations.CountrySerializers(queryset, many=True)
-    #    return Response(serializer.data)
-
     def get(self, request):
         user = request.user
-        try:
-            amazon = AmazonAssociates.objects.get(user=user)
-        except AmazonAssociates.DoesNotExist:
+        amazon = AmazonAssociates.objects.filter(user=user)
+        if len(amazon) == 0:
             return Response({'message': 'The user does not have any Amazon associate account'}, status=STATUS['400'])
         aux = amazon.aggregate(arr=ArrayAgg('country'))
         country_id = aux.get('arr')
