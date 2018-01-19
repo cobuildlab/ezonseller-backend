@@ -119,8 +119,10 @@ class PurchasePlanView(APIView):
             accept=True,
             automatic_payment=automatic 
         )
-        serializer = serializers.PaymentHistorySerializer(payment, many=False)
-        return Response(serializer.data, status=STATUS['201'])
+        serializer_data = serializers.PaymentHistorySerializer(payment, many=False)
+        serializer = serializer_data.data
+        serializer['message'] = 'the purchase of the plan has been successful'
+        return Response(serializer, status=STATUS['201'])
 
 
 class CancelSubscriptionView(APIView):
@@ -168,11 +170,13 @@ class CreditCardViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         context = {'request': request}
-        serializer = validations.CreditCardCreateValidations(data=request.data,
+        serializer_data = validations.CreditCardCreateValidations(data=request.data,
                                                       context=context)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=STATUS['201'])
+        serializer_data.is_valid(raise_exception=True)
+        self.perform_create(serializer_data)
+        serializer = serializer_data.data
+        serializer['message'] = 'the credit card has been saved successfully'
+        return Response(serializer, status=STATUS['201'])
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

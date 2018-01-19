@@ -168,14 +168,16 @@ class RecoverPasswordView(APIView):
 class ActivateAccountView(APIView):
     permission_classes = (permissions.AllowAny,)
 
-    def get(self, request):
-
-        uidb = self.request.GET.get('uidb64')
-        token = self.request.GET.get('token')
+    def post(self, request):
+        data = request.data
+        uidb = data.get('uidb64')
+        token = data.get('token')
         if not uidb:
             return Response({'message': 'The uidb is required, cant be empty'}, status=STATUS['400'])
         if not token:
             return Response({'message': 'the token is required, cant be empty'}, status=STATUS['400'])
+        if not re.search("(b')", uidb):
+            return Response({'message':'the uidb64 is incorrect'},status=STATUS['400'])
         decode = uidb.strip("b")
         count = len(decode)-1
         decode = decode[1:count]
@@ -236,8 +238,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
              return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
         user.photo = request.data.get('photo')
         user.save()
-        serializer = serializers.ProfileUserSerializers(user, many=False)
-        return Response(serializer.data)
+        serializer_data = serializers.ProfileUserSerializers(user, many=False)
+        serializer = serializer_data.data
+        serializer['message']= 'The profile image has been change successfully'
+        return Response(serializer)
 
     @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
     def changePassword(self, request, pk=None):

@@ -110,19 +110,13 @@ class SearchAmazonView(APIView):
             return Response({'message': 'The category does not exits, please send a correct category'})
         amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
         if request.user.type_plan == 'Free':
-            #caches['default'].make_key('test_key')
-            cache_key = 'amazon-key'
-            amazon_search = cache.get(cache_key)
-            print(amazon_search)
-            if amazon_search == None:
-                print('entro if')
-                amazon_search = amazon_user.limit
-                cache.set(cache_key,amazon_search, None)
+            if amazon_user.limit == 0:
+                cache.set('amazon-key',amazon_user.limit)
+                return Response({'message':'You have reached the limit of allowed searches for one day'}, status=STATUS['204'])
             else:
-                print('entro else')
-                cache.decr(cache_key)
-                print("value cache",cache.get(cache_key))
-            return Response({})
+                if offset == 0 or offset == "0":
+                    amazon_user.limit = amazon_user.limit-1
+                    amazon_user.save
         #try:
         amazon_api = AmazonAPI(amazon_user.access_key_id,
                                amazon_user.secrect_access_key,
@@ -138,12 +132,6 @@ class SearchAmazonView(APIView):
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
         return Response(serializer.data)
-
-    def reload_cache(self):
-        amazon_cache = "realze idea"
-        cache.delete('amazon-key')
-        cache.set('airports', airport_cache, None)
-
 
 
 class SearchEbayView(APIView):
@@ -194,11 +182,13 @@ class AmazonViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         context = {'request': request}
-        serializer = validations.AmazonKeyValidations(data=request.data,
+        serializer_data = validations.AmazonKeyValidations(data=request.data,
                                                       context=context)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=STATUS['201'])
+        serializer_data.is_valid(raise_exception=True)
+        self.perform_create(serializer_data)
+        serializer = serializer_data.data
+        serializer['message'] = 'the amazon account has been saved successfully'
+        return Response(serializer, status=STATUS['201'])
 
     def update(self, request, *args, **kwargs):
         #partial = kwargs.pop('partial', False)
@@ -217,8 +207,10 @@ class AmazonViewSet(viewsets.ModelViewSet):
         amazon.access_key_id=data.get('access_key_id')
         amazon.secrect_access_key = data.get('secrect_access_key')
         amazon.save()
-        serializer = self.get_serializer(amazon)
-        return Response(serializer.data)
+        serializer_data = self.get_serializer(amazon)
+        serializer = serializer_data.data
+        serializer['message'] = 'the amazon account has been updated successfully'
+        return Response(serializer)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -238,11 +230,13 @@ class EbayViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         context = {'request': request}
-        serializer = validations.EbayKeyValidations(data=request.data,
+        serializer_data = validations.EbayKeyValidations(data=request.data,
                                                     context=context)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=STATUS['201'],)
+        serializer_data.is_valid(raise_exception=True)
+        self.perform_create(serializer_data)
+        serializer = serializer_data.data
+        serializer['message'] = 'the ebay account has been saved successfully'
+        return Response(serializer, status=STATUS['201'],)
 
     def update(self, request, *args, **kwargs):
         data = request.data
@@ -255,8 +249,10 @@ class EbayViewSet(viewsets.ModelViewSet):
             return Response({'message': 'the client_id to update does not exist'})
         ebay.client_id = data.get('new_client_id')
         ebay.save()
-        serializer = serializers.EbayProfileSerializers(ebay)
-        return Response(serializer.data)
+        serializer_data = serializers.EbayProfileSerializers(ebay)
+        serializer = serializer_data.data
+        serializer['message'] = 'the ebay account has been updated successfully'
+        return Response(serializer)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
