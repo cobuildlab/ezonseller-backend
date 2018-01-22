@@ -68,7 +68,7 @@ class CountryView(APIView):
         user = User.objects.get(username=request.user)
         amazon = AmazonAssociates.objects.filter(user=user)
         if len(amazon) == 0:
-            return Response([], status=STATUS['204'])
+            return Response([], status=STATUS['200'])
         aux = amazon.aggregate(arr=ArrayAgg('country'))
         country_id = aux.get('arr')
         queryset = Country.objects.filter(id__in=country_id)
