@@ -64,7 +64,7 @@ THIRD_PARTY_APPS = [
   'rest_framework',
   'rest_framework.authtoken',
   'corsheaders',
-  'django_celery_beat',
+  'djcelery',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
@@ -266,3 +266,6 @@ LOGGING = {
     },
 }
 """
+
+import djcelery
+djcelery.setup_loader()

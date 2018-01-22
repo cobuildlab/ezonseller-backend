@@ -18,6 +18,7 @@ from account.models import User
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.cache import cache
+import datetime
 from django.core.cache import caches
 
 log = logging.getLogger('product.views')
@@ -67,7 +68,7 @@ class CountryView(APIView):
         user = User.objects.get(username=request.user)
         amazon = AmazonAssociates.objects.filter(user=user)
         if len(amazon) == 0:
-            return Response({'message': 'The user does not have any Amazon associate account'}, status=STATUS['400'])
+            return Response([], status=STATUS['204'])
         aux = amazon.aggregate(arr=ArrayAgg('country'))
         country_id = aux.get('arr')
         queryset = Country.objects.filter(id__in=country_id)
@@ -114,12 +115,15 @@ class SearchAmazonView(APIView):
         amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
         if request.user.type_plan == 'Free':
             if amazon_user.limit == 0:
+                amazon_user.date_end = datetime.datetime.now()
+                amazon_user.save()
                 cache.set('amazon-key',amazon_user.limit)
                 return Response({'message':'You have reached the limit of allowed searches for one day'}, status=STATUS['204'])
             else:
                 if offset == 0 or offset == "0":
-                    amazon_user.limit = amazon_user.limit-1
-                    amazon_user.save
+                    rest = amazon_user.limit - 1
+                    amazon_user.limit = rest
+                    amazon_user.save()
         #try:
         amazon_api = AmazonAPI(amazon_user.access_key_id,
                                amazon_user.secrect_access_key,

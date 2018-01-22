@@ -19,6 +19,7 @@ class AmazonAssociates(models.Model):
     access_key_id = models.CharField(max_length=100, null=True, blank=True)
     secrect_access_key = models.CharField(max_length=100, null=True, blank=True)
     limit = models.IntegerField(default=10)
+    date_end = models.DateTimeField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
 
