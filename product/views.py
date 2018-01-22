@@ -14,6 +14,7 @@ from product import serializers
 from product.models import AmazonAssociates, EbayAssociates, Country
 from product import validations
 from product.pagination import paginate
+from account.models import User
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.cache import cache
@@ -63,7 +64,7 @@ class CountryView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        user = request.user
+        user = User.objects.get(username=request.user)
         amazon = AmazonAssociates.objects.filter(user=user)
         if len(amazon) == 0:
             return Response({'message': 'The user does not have any Amazon associate account'}, status=STATUS['400'])
@@ -129,11 +130,14 @@ class SearchAmazonView(APIView):
         products = amazon_api.search(Keywords=keyword, SearchIndex=category)
         try:
             list_products = [product for product in products]
+            count = len(list_products)
         except amazon.api.SearchException:
             return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
-        serializer = serializers.AmazonProductSerializers(list_paginated, many=True)
-        return Response(serializer.data)
+        serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
+        serializer = serializer_data.data
+        serializer.append({'total_items': count})
+        return Response(serializer)
 
 
 class SearchEbayView(APIView):
@@ -161,11 +165,13 @@ class SearchEbayView(APIView):
             if elements.get('searchResult').get('_count') == '0':
                 return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
             items = response.reply.searchResult.item
-            print(len(items))
+            count = len(item)
             list_products = [item for item in items]
             list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
-            serializer = serializers.EbayProductSerializers(list_paginated, many=True)
-            return Response(serializer.data)
+            serializer_data = serializers.EbayProductSerializers(list_paginated, many=True)
+            serializer = serializer_data.data
+            serializer.append({'total_items': count})
+            return Response(serializer)
         except ConnectionError as e:
             #print("conecction error",e)
             #print("conecction dic",e.response.dict())

@@ -15,6 +15,7 @@ from account.models import User
 from datetime import datetime
 from datetime import timedelta
 from calendar import isleap
+from payment.pagination import paginate
 import re
 from rest_framework.decorators import detail_route, list_route
 
@@ -205,12 +206,20 @@ class PlanView(APIView):
 
 
 class PaymentHistoryView(ListAPIView):
-    serializer_class = serializers.PaymentHistorySerializer
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = PaymentHistoryPagination
-
-    def get_queryset(self):
-        queryset = PaymentHistory.objects.all()
-        return queryset
+    
+    def get(self, request):
+        limit = request.GET.get('limit', None)
+        offset = request.GET.get('offset', None)
+        if not limit:
+            return Response({'message': 'the limit is required, cant be empty'})
+        if not offset:
+            return Response({'message': 'the offset is required, cant be empty'})
+        queryset = PaymentHistory.objects.filter(user=request.user)
+        list_paginated = paginate(qs=queryset, limit=limit, offset=offset)
+        serializer_data = serializers.PaymentHistorySerializer(list_paginated, many=True)
+        serializer = serializer_data.data
+        serializer.append({'total_items': len(queryset)})
+        return Response(serializer)
 
 
