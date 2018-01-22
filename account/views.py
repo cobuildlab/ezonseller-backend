@@ -168,35 +168,8 @@ class RecoverPasswordView(APIView):
 class ActivateAccountView(APIView):
     permission_classes = (permissions.AllowAny,)
 
-    def get(self, request):
-        data = request.GET
-        uidb = data.get('uidb64')
-        token = data.get('token')
-        if not uidb:
-            return Response({'message': 'The uidb is required, cant be empty'}, status=STATUS['400'])
-        if not token:
-            return Response({'message': 'the token is required, cant be empty'}, status=STATUS['400'])
-        if not re.search("(b')", uidb):
-            return Response({'message':'the uidb64 is incorrect'},status=STATUS['400'])
-        decode = uidb.strip("b")
-        count = len(decode)-1
-        decode = decode[1:count]
-        decode = str.encode(decode)
-        uid = force_text(urlsafe_base64_decode(decode))
-        try:
-            user = account_models.User.objects.get(pk=uid)
-        except account_models.User.DoesNotExist:
-            return Response({'message': 'The user not exist'}, status=STATUS['400'])
-        if user is not None and account_activation_token.check_token(user, token):
-            user.is_active = True
-            user.save()
-            return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
-        else:
-            return Response({'message': 'Activation link is invalid!'}, status=STATUS['400'])
-
-
-    # def post(self, request):
-    #     data = request.data
+    # def get(self, request):
+    #     data = request.GET
     #     uidb = data.get('uidb64')
     #     token = data.get('token')
     #     if not uidb:
@@ -220,6 +193,32 @@ class ActivateAccountView(APIView):
     #         return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
     #     else:
     #         return Response({'message': 'Activation link is invalid!'}, status=STATUS['400'])
+
+    def post(self, request):
+        data = request.data
+        uidb = data.get('uidb64')
+        token = data.get('token')
+        if not uidb:
+            return Response({'message': 'The uidb is required, cant be empty'}, status=STATUS['400'])
+        if not token:
+            return Response({'message': 'the token is required, cant be empty'}, status=STATUS['400'])
+        if not re.search("(b')", uidb):
+            return Response({'message':'the uidb64 is incorrect'},status=STATUS['400'])
+        decode = uidb.strip("b")
+        count = len(decode)-1
+        decode = decode[1:count]
+        decode = str.encode(decode)
+        uid = force_text(urlsafe_base64_decode(decode))
+        try:
+            user = account_models.User.objects.get(pk=uid)
+        except account_models.User.DoesNotExist:
+            return Response({'message': 'The user not exist'}, status=STATUS['400'])
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Thank you for your email confirmation. Now you can login your account.'})
+        else:
+            return Response({'message': 'Activation link is invalid!'}, status=STATUS['400'])
 
 
 class ContacSupportView(APIView):
