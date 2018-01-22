@@ -13,13 +13,14 @@ from account import models as account_models
 from notification import  models as notification_models
 from notification import views as notify_views
 from datetime import datetime
+from datetime import timedelta
 from account import validations
 from account import serializers
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.parsers import FormParser,MultiPartParser, FileUploadParser
+from account.tasks import disableCodeRecoveryPassword
 import re
 #status-code-response
 STATUS = {
@@ -135,6 +136,8 @@ class RequestRecoverPassword(APIView):
             return Response({'message': 'The email not exist in database'}, status=STATUS['400'])
 
         if notify_views.recover_password(user, request):
+            expire = datetime.now() + timedelta(minutes=10)
+            disableCodeRecoveryPassword.apply_async(args=[user.id], eta=expire)
             return Response({'message': 'The email has been send'})
         return Response({'message': 'The email cannot be sent'}, status=STATUS['500'])
     
@@ -158,7 +161,6 @@ class RecoverPasswordView(APIView):
             user = account_models.User.objects.get(recovery = str(code))
         except account_models.User.DoesNotExist:
             return Response({'message': 'Invalid code, please write the correct code'}, status=STATUS['400'])
-
         serializer = validations.UserRecoverPasswordSerializers(user, data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()

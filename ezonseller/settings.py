@@ -266,6 +266,10 @@ LOGGING = {
     },
 }
 """
+#celery
+CELERY_BROKER_URL = 'amqp://localhost'
+
 
 import djcelery
 djcelery.setup_loader()
+

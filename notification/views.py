@@ -17,13 +17,13 @@ def pass_generator(size=20, chars=string.ascii_uppercase + string.digits):
 def recover_password(user, request):
     try:
         current_site = get_current_site(request)
-        new_password = pass_generator(20)
+        new_code = pass_generator(20)
         to = user.email
         data = {
             "msg": 'Your new password', 
-            'code': new_password, 
+            'code': new_code,
             'username': user.username,
-            "domain" : current_site.domain,
+            "domain": current_site.domain,
         }
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/recovery_password.html", data)
@@ -31,7 +31,7 @@ def recover_password(user, request):
         send = EmailMultiAlternatives(subject, text_content, from_email, [to])
         send.attach_alternative(html_content, "text/html")
         send.send()
-        user.recovery = new_password
+        user.recovery = new_code
         user.save()
         return True
     except:
