@@ -28,7 +28,9 @@ def recover_password(user, request):
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/recovery_password.html", data)
         html_content = render_to_string("email/recovery_password.html", data)
-        send = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                      'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         user.recovery = new_code
@@ -51,7 +53,9 @@ def activate_account(user, request):
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/user_verification.html", data)
         html_content = render_to_string("email/user_verification.html", data)
-        send = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                    headers={'From': 'Ezonseller <'+from_email+'>',
+                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
@@ -71,7 +75,9 @@ def support_notify(user, request):
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/contact_support.html", data)
         html_content = render_to_string("email/contact_support.html", data)
-        send = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                headers={'From': 'Ezonseller <'+from_email+'>',
+                                'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
