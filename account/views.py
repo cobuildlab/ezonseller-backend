@@ -20,7 +20,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route, list_route
-from account.tasks import disableCodeRecoveryPassword
+#from account.tasks import disableCodeRecoveryPassword
 import re
 #status-code-response
 STATUS = {

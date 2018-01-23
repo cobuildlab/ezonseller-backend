@@ -20,7 +20,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.cache import cache
 import datetime
 from django.core.cache import caches
-from product.tasks import verifyStatusAmazonAccount
+#from product.tasks import verifyStatusAmazonAccount
 log = logging.getLogger('product.views')
 
 #status-code-response
