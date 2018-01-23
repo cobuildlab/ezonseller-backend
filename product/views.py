@@ -172,7 +172,7 @@ class SearchEbayView(APIView):
             if elements.get('searchResult').get('_count') == '0':
                 return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
             items = response.reply.searchResult.item
-            count = len(item)
+            count = len(items)
             list_products = [item for item in items]
             list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
             serializer_data = serializers.EbayProductSerializers(list_paginated, many=True)
