@@ -117,8 +117,6 @@ class SearchAmazonView(APIView):
             if amazon_user.limit == 0:
                 amazon_user.date_end = datetime.datetime.now()
                 amazon_user.save()
-                expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
-                verifyStatusAmazonAccount.apply_async(args=[request.user,country_id], eta=expire)
                 cache.set('amazon-key',amazon_user.limit)
                 return Response(
             {'message':'You have reached the limit of allowed searches for one day, please wait a day to be able to perform searches again '}, 

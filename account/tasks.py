@@ -7,9 +7,9 @@ from celery.schedules import crontab
 from django.utils import timezone
 
 
-@shared_task
-def disableCodeRecoveryPassword(instance):
-    instance = account_models.User.objects.get(id=instance)
-    instance.recovery = ''
-    instance.save()
-    return True
+#@shared_task
+#def disableCodeRecoveryPassword(instance):
+#    instance = account_models.User.objects.get(id=instance)
+#    instance.recovery = ''
+#    instance.save()
+#    return True

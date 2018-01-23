@@ -136,8 +136,6 @@ class RequestRecoverPassword(APIView):
             return Response({'message': 'The email not exist in database'}, status=STATUS['400'])
 
         if notify_views.recover_password(user, request):
-            #expire = datetime.now() + timedelta(minutes=10)
-            #disableCodeRecoveryPassword.apply_async(args=[user.id], eta=expire)
             return Response({'message': 'The email has been send'})
         return Response({'message': 'The email cannot be sent'}, status=STATUS['500'])
     
