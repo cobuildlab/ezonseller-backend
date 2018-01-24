@@ -7,11 +7,12 @@ celery==3.1.25
 certifi==2017.11.5
 chardet==3.0.4
 dj-database-url==0.4.2
-Django==2.0
+Django==2.0.1
 django-celery==3.2.2
 django-cors-headers==2.1.0
 django-environ==0.4.4
 django-filter==1.1.0
+django-jet==1.0.7
 djangorestframework==3.7.7
 ebaysdk==2.1.5
 ephem==3.7.6.0
@@ -31,6 +32,7 @@ python-amazon-simple-product-api==2.2.11
 python-dateutil==2.6.1
 python-memcached==1.59
 pytz==2017.3
+redis==2.10.6
 requests==2.18.4
 serpy==0.3.1
 six==1.11.0

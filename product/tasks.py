@@ -14,11 +14,11 @@ from django.contrib.postgres.aggregates import ArrayAgg
 #     product_models.AmazonAssociates.objects.all().update(limit=10)
 #     return True
 
-#@shared_task
-#def verifyStatusAmazonAccount(instance,country):
-#    print(instance)
-#    print(country)
-#    amazon = product_models.AmazonAssociates.objects.get(user=instance, country=country)
-#    amazon.limit = 10
-#    amazon.save()
-#    return True
+@shared_task
+def verifyStatusAmazonAccount(instance,country):
+    print(instance)
+    print(country)
+    amazon = product_models.AmazonAssociates.objects.get(user=instance, country=country)
+    amazon.limit = 10
+    amazon.save()
+    return True

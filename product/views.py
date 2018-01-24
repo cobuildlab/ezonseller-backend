@@ -61,6 +61,7 @@ class CountryListView(APIView):
        serializer = validations.CountrySerializers(queryset, many=True)
        return Response(serializer.data)
 
+
 class CountryView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -117,11 +118,12 @@ class SearchAmazonView(APIView):
             if amazon_user.limit == 0:
                 amazon_user.date_end = datetime.datetime.now()
                 amazon_user.save()
-                cache.set('amazon-key',amazon_user.limit)
+                #expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
+                #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
+                cache.set('amazon-key', amazon_user.limit)
                 return Response(
-            {'message':'You have reached the limit of allowed searches for one day, please wait a day to be able to perform searches again '}, 
-            status=STATUS['204']
-            )
+                    {'message': 'You have reached the limit of allowed searches for one day, '
+                               'please wait a day to be able to perform searches again '}, status=STATUS['204'])
             else:
                 if offset == 0 or offset == "0":
                     rest = amazon_user.limit - 1

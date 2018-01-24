@@ -45,6 +45,8 @@ ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com',
 
 # Application definition
 DJANGO_APPS = [
+  'jet.dashboard',
+  'jet',
   'django.contrib.admin',
   'django.contrib.auth',
   'django.contrib.contenttypes',
@@ -224,11 +226,44 @@ CORS_ALLOW_METHODS = (
     'POST',
     'PUT',
 )
-#django-jet
+#JET ADMIN
+#JET_DEFAULT_THEME = 'default'
 
+JET_THEMES = [
+    {
+        'theme': 'default', # theme folder name
+        'color': '#47bac1', # color of the theme's button in user menu
+        'title': 'Default' # theme title
+    },
+    {
+        'theme': 'green',
+        'color': '#44b78b',
+        'title': 'Green'
+    },
+    {
+        'theme': 'light-green',
+        'color': '#2faa60',
+        'title': 'Light Green'
+    },
+    {
+        'theme': 'light-violet',
+        'color': '#a464c4',
+        'title': 'Light Violet'
+    },
+    {
+        'theme': 'light-blue',
+        'color': '#5EADDE',
+        'title': 'Light Blue'
+    },
+    {
+        'theme': 'light-gray',
+        'color': '#222',
+        'title': 'Light Gray'
+    }
+]
 #Media-Images
 MEDIA_URL = '/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
@@ -267,8 +302,15 @@ LOGGING = {
 }
 """
 #celery
-CELERY_BROKER_URL = 'amqp://localhost'
+#CELERY_BROKER_URL = 'amqp://localhost'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+#CELERY_BROKER_URL = os.environ['REDIS_URL']
+#CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
 
+#CELERY_ACCEPT_CONTENT = ['application/json']
+#CELERY_TASK_SERIALIZER = 'json'
+#CELERY_RESULT_SERIALIZER = 'json'
+#CELERY_TIMEZONE = TIME_ZONE
 
 import djcelery
 djcelery.setup_loader()

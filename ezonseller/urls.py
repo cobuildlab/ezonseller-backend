@@ -28,6 +28,8 @@ router.register(r'product/ebay', product_views.EbayViewSet)
 router.register(r'payment/card', payment_views.CreditCardViewSet)
 
 urlpatterns = [
+    re_path(r'^jet/', include('jet.urls', 'jet')),
+    re_path(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
     path('admin/', admin.site.urls),
     path('login/', account_views.Login.as_view()),
     path('logout/', account_views.Logout.as_view()),
