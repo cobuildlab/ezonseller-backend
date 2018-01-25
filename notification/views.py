@@ -70,7 +70,7 @@ def support_notify(user, request):
         to = user.email
         data = {
             'domain_back': current_site.domain,
-            "msg": 'Your new password',
+            "msg": 'Contact Support',
             'username': user.username,
         }
         subject, from_email = data['msg'], EMAIL_HOST_USER

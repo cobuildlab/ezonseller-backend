@@ -8,7 +8,8 @@ from rest_framework import status
 from rest_framework import viewsets
 from payment.pagination import PaymentHistoryPagination
 from payment.models import PlanSubscription, PlanSubscriptionList, \
-    TermsCondition, CreditCard, PaymentHistory, CancelSubscription, CancelSubscriptionEdition
+    TermsCondition, CreditCard, PaymentHistory, CancelSubscription, \
+    CancelSubscriptionEdition, CancelSubscriptionList
 from payment import serializers
 from payment import validations
 from account.models import User
@@ -140,12 +141,16 @@ class CancelSubscriptionView(APIView):
         if not data.get('id_plan'):
             return Response({'message': 'the request with the plan id cant be empty'})
         if not data.get('reason'):
+            return Response({'message': 'the option to cancel the plan cant be empty'})
+        if not data.get('option'):
             return Response({'message': 'the reason to cancel the plan cant be empty'})
         try:
             plan = PlanSubscription.objects.get(id=data.get('id_plan'))
         except PlanSubscription.DoesNotExist:
             return Response({'message': 'the plan does not exist'}, status=STATUS['400'])
-
+        user.type_plan = 'Free'
+        user.id_plan = 0
+        user.save()
         payments = PaymentHistory.objects.filter(user=user, id_plan=plan.id).order_by('-id')[:1]
         user_payment = payments[0]
         user_payment.accept = False
@@ -154,6 +159,7 @@ class CancelSubscriptionView(APIView):
         cancel = CancelSubscription.objects.get_or_create(
             user=user,
             plan=plan,
+            option=data.get('option'),
             reason=data.get('reason'),
         )
         return Response({'message': 'the cancel subscription of plan has been accept successfully'})

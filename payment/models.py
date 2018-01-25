@@ -67,6 +67,7 @@ class CancelSubscriptionEdition(models.Model):
 class CancelSubscription(models.Model):
     user = models.ForeignKey('account.User', related_name='cancel_user', on_delete=models.CASCADE, blank=True, null=True)
     plan = models.ForeignKey('PlanSubscription', related_name='cancel_plan', on_delete=models.CASCADE, blank=True, null=True)
+    option = models.CharField(_('Option'), max_length=100, blank=False, null=False)
     reason = models.CharField(_('Description'), max_length=255, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
