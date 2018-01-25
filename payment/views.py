@@ -173,7 +173,14 @@ class CreditCardViewSet(viewsets.ModelViewSet):
         context = {'request': request}
         serializer_data = validations.CreditCardCreateValidations(data=request.data,
                                                       context=context)
-        serializer_data.is_valid(raise_exception=True)
+        #serializer_data.is_valid(raise_exception=True)
+        if serializer_data.is_valid() is False:
+            errors_msg = []
+            errors_keys = list(serializer_data.errors.keys())
+            for i in errors_keys:
+                errors_msg.append(str(i) + ": " + str(serializer_data.errors[i][0]))
+            error_msg = "".join(errors_msg)
+            return Response({'message': errors_msg[0]}, status=STATUS['400'])
         self.perform_create(serializer_data)
         serializer = serializer_data.data
         serializer['message'] = 'the credit card has been saved successfully'
@@ -184,7 +191,14 @@ class CreditCardViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = validations.CreditCardValidations(instance, data=request.data, 
         context={'request': request})
-        serializer.is_valid(raise_exception=True)
+        #serializer.is_valid(raise_exception=True)
+        if serializer.is_valid() is False:
+            errors_msg = []
+            errors_keys = list(serializer.errors.keys())
+            for i in errors_keys:
+                errors_msg.append(str(i) + ": " + str(serializer.errors[i][0]))
+            error_msg = "".join(errors_msg)
+            return Response({'message': errors_msg[0]}, status=STATUS['400'])
         self.perform_update(serializer)
         response_data = serializer.data
         response_data['message'] = 'the information of your credit card has been updated successfully'

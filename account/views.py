@@ -34,7 +34,6 @@ STATUS = {
     "500": status.HTTP_500_INTERNAL_SERVER_ERROR
 }
 
-
 class Login(APIView):
     """
     """
@@ -57,6 +56,8 @@ class Login(APIView):
                 user = account_models.User.objects.get(email=username)
             except account_models.User.DoesNotExist:
                 return Response({'message': 'the user not exist'}, status=STATUS['400'])
+            if not user.is_active:
+                return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
             if not user.check_password(password):
                 band = False
         else:
@@ -230,7 +231,14 @@ class ContacSupportView(APIView):
         user_data = request.user
         serializer = validations.ContactSupportValidations(data=request.data,
                                                            context={'request': request})
-        serializer.is_valid(raise_exception=True)
+        #serializer.is_valid(raise_exception=True)
+        if serializer.is_valid() is False:
+            errors_msg = []
+            errors_keys = list(serializer.errors.keys())
+            for i in errors_keys:
+                errors_msg.append(str(i) + ": " + str(serializer.errors[i][0]))
+            error_msg = "".join(errors_msg)
+            return Response({'message': errors_msg[0]}, status=STATUS['400'])
         serializer.save()
         user = account_models.User.objects.get(username=user_data)
         if notify_views.support_notify(user, request):
@@ -275,7 +283,14 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def changePassword(self, request, pk=None):
         user = request.user
         serializer = validations.UserChangePasswordSerializers(user, data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
+        #serializer.is_valid(raise_exception=True)
+        if serializer.is_valid() is False:
+            errors_msg = []
+            errors_keys = list(serializer.errors.keys())
+            for i in errors_keys:
+                errors_msg.append(str(i) + ": " + str(serializer.errors[i][0]))
+            error_msg = "".join(errors_msg)
+            return Response({'message': errors_msg[0][14:]}, status=STATUS['400'])
         serializer.save()
         user.auth_token.delete()
         token, created = Token.objects.get_or_create(user=user)
