@@ -19,12 +19,12 @@ def recover_password(user, request):
         current_site = get_current_site(request)
         new_code = pass_generator(20)
         to = user.email
-        data = {
-            "msg": 'Your new password', 
-            'code': new_code,
-            'username': user.username,
-            "domain": 'ezonseller.herokuapp.com',
-        }
+        data = {'msg': 'Your new password',
+                'code': new_code,
+                'username': user.username,
+                'domain_fron': 'ezonseller.herokuapp.com',
+                'domain_back': current_site.domain
+                }
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/recovery_password.html", data)
         html_content = render_to_string("email/recovery_password.html", data)
@@ -44,7 +44,8 @@ def activate_account(user, request):
     try:
         current_site = get_current_site(request)
         to = user.email
-        data = {'domain': 'ezonseller.herokuapp.com',
+        data = {'domain_fron': 'ezonseller.herokuapp.com',
+                'domain_back': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
                 'username': user.username,
@@ -68,7 +69,7 @@ def support_notify(user, request):
         current_site = get_current_site(request)
         to = user.email
         data = {
-            'domain': current_site.domain,
+            'domain_back': current_site.domain,
             "msg": 'Your new password',
             'username': user.username,
         }
