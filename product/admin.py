@@ -1,5 +1,5 @@
 from django.contrib import admin
-from product.models import AmazonAssociates, EbayAssociates, Country
+from product import models as product_models 
 
 
 class AmazonAssociatesAdmin(admin.ModelAdmin):
@@ -25,7 +25,7 @@ class CountryAdmin(admin.ModelAdmin):
     list_display = ('id' ,'name', 'code')
 
 
-admin.site.register(AmazonAssociates, AmazonAssociatesAdmin)
-admin.site.register(EbayAssociates, EbayAssociatesAdmin)
-admin.site.register(Country, CountryAdmin)
+admin.site.register(product_models.AmazonAssociates, AmazonAssociatesAdmin)
+admin.site.register(product_models.EbayAssociates, EbayAssociatesAdmin)
+admin.site.register(product_models.Country, CountryAdmin)
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from notification.models import ContactSupport
+from notification import models as notification_models
 
 
 class ContactSupportAdmin(admin.ModelAdmin):
@@ -8,4 +8,4 @@ class ContactSupportAdmin(admin.ModelAdmin):
     list_filter = ('created',)
 
 
-admin.site.register(ContactSupport,ContactSupportAdmin)
+admin.site.register(notification_models.ContactSupport,ContactSupportAdmin)

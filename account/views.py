@@ -16,6 +16,7 @@ from datetime import datetime
 from datetime import timedelta
 from account import validations
 from account import serializers
+from account import permissions as accounts_permissions
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
@@ -249,11 +250,17 @@ class ContacSupportView(APIView):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = account_models.User.objects.all()
     serializer_class = serializers.ProfileUserSerializers
+    permission_classes = (accounts_permissions.IsOwnerOrReadOnly,permissions.IsAuthenticated)
     http_method_names = ['get', 'put', 'delete', 'post']
 
     def list(self, request, *args, **kwargs):
         queryset = account_models.User.objects.get(username=request.user)
         serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):

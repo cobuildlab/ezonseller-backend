@@ -17,9 +17,9 @@ from product.pagination import paginate
 from account.models import User
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.core.cache import cache
+#from django.core.cache import cache
 import datetime
-from django.core.cache import caches
+#from django.core.cache import caches
 #from product.tasks import verifyStatusAmazonAccount
 log = logging.getLogger('product.views')
 
@@ -120,7 +120,7 @@ class SearchAmazonView(APIView):
                 amazon_user.save()
                 #expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
                 #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
-                cache.set('amazon-key', amazon_user.limit)
+                #cache.set('amazon-key', amazon_user.limit)
                 return Response(
                     {'message': 'You have reached the limit of allowed searches for one day, '
                                'please wait a day to be able to perform searches again '}, status=STATUS['204'])
