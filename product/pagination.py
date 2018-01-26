@@ -2,7 +2,7 @@ from math import fabs
 
 
 def paginate_queryset(qs, **kwargs):
-    max_limit = 10
+    max_limit = 20
     count = len(qs)
     limit = kwargs.get("limit", 0)
     # new = kwargs.get("new")
