@@ -123,7 +123,7 @@ class SearchAmazonView(APIView):
                 #cache.set('amazon-key', amazon_user.limit)
                 return Response(
                     {'message': 'You have reached the limit of allowed searches for one day, '
-                               'please wait a day to be able to perform searches again '}, status=STATUS['204'])
+                               'please wait a day to be able to perform searches again '}, status=STATUS['400'])
             else:
                 if offset == 0 or offset == "0":
                     rest = amazon_user.limit - 1
@@ -141,7 +141,7 @@ class SearchAmazonView(APIView):
             list_products = [product for product in products]
             count = len(list_products)
         except amazon.api.SearchException:
-            return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['200'])
+            return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['400'])
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
         serializer = serializer_data.data
@@ -172,7 +172,7 @@ class SearchEbayView(APIView):
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
             elements = response.dict()
             if elements.get('searchResult').get('_count') == '0':
-                return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['200'])
+                return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['400'])
             items = response.reply.searchResult.item
             count = len(items)
             list_products = [item for item in items]
