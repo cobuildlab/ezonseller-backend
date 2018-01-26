@@ -141,7 +141,7 @@ class SearchAmazonView(APIView):
             list_products = [product for product in products]
             count = len(list_products)
         except amazon.api.SearchException:
-            return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
+            return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['200'])
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
         serializer = serializer_data.data
@@ -172,7 +172,7 @@ class SearchEbayView(APIView):
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
             elements = response.dict()
             if elements.get('searchResult').get('_count') == '0':
-                return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['204'])
+                return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['200'])
             items = response.reply.searchResult.item
             count = len(items)
             list_products = [item for item in items]
