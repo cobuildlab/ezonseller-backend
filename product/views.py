@@ -11,7 +11,7 @@ from ebaysdk.finding import Connection as Finding
 import bottlenose.api
 import bottlenose
 from product import serializers
-from product.models import AmazonAssociates, EbayAssociates, Country
+from product.models import AmazonAssociates, EbayAssociates, Country, CacheAmazonSearch
 from product import validations
 from product.pagination import paginate
 from account.models import User
@@ -76,9 +76,44 @@ class CountryView(APIView):
         serializer = serializers.CountrySerializers(queryset, many=True)
         return Response(serializer.data)
 
+class LastSearchView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        queryset = CacheAmazonSearch.objects.filter(user=request.user)
+        serializer = serializers.AmazonProductSerializers(queryset, many=True)
+        return Response(serializer.data)
 
 class SearchAmazonView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
+
+    def saveProductSearch(self, obj, user):
+        CacheAmazonSearch.objects.filter(user=user).delete()
+        for item in obj:
+            description = ''
+            price = ''
+            for text in item.get('features'):
+                description += text 
+            price=str(item.get('price_and_currency')[0]) +' '+str(item.get('price_and_currency')[1])
+            print(item.get('asin'))
+            print(item.get('large_image_url'))
+            print(item.get('availability'))
+            print(item.get('detail_page_url'))
+            print(item.get('offer_url'))
+            print(item.get('price_and_currency'))
+            print(price)
+            print(description)
+            created = CacheAmazonSearch.objects.create(
+                user = user,
+                title = item.get('title'),
+                asin=item.get('asin'), 
+                large_image_url = item.get('large_image_url'),
+                availability= item.get('availability'),
+                detail_page_url= item.get('detail_page_url'),
+                price_and_currency= price,
+                offer_url= item.get('offer_url'), 
+                features= description,)
+        return True
 
     def get(self, request):
         keyword = request.GET.get('keyword')
@@ -145,9 +180,11 @@ class SearchAmazonView(APIView):
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
         serializer = serializer_data.data
+        self.saveProductSearch(serializer,request.user)
         serializer.append({'total_items': count})
         return Response(serializer)
 
+    
 
 class SearchEbayView(APIView):
     permission_classes = (permissions.IsAuthenticated,)

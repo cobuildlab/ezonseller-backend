@@ -48,6 +48,7 @@ urlpatterns = [
     re_path(r'^activate/$', account_views.ActivateAccountView.as_view()),
     path('product/ebay-search/', product_views.SearchEbayView.as_view()),
     path('product/amazon-search/', product_views.SearchAmazonView.as_view()),
+    path('product/amazon-lastsearch/', product_views.LastSearchView.as_view()),
 ]
 from django.conf.urls.static import static, serve
 from ezonseller import settings

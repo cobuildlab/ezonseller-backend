@@ -16,8 +16,8 @@ class EbayProductSerializers(serpy.Serializer):
     def get_sellingStatus(self, obj):
         item = obj.get('sellingStatus')
         price = item.get('currentPrice')
-        items = {'values': price.get('value'), 'currency': price.get('_currencyId')}
-        return items
+        itemprice =  price.get('value')+''+price.get('_currencyId')
+        return itemprice
 
 
 class EbayProfileSerializers(serpy.Serializer):

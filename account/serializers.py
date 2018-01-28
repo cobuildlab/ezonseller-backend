@@ -14,6 +14,7 @@ class ProfileUserSerializers(serpy.Serializer):
     type_plan = serpy.Field()
     id_plan = serpy.Field()
     photo = serpy.MethodField()
+    photo64 = serpy.Field()
     credit_cards = serpy.MethodField()
     plan_subscription = serpy.MethodField()
     amazon_account = serpy.MethodField()
@@ -23,7 +24,7 @@ class ProfileUserSerializers(serpy.Serializer):
         if not obj.photo:
             return(str(obj.photo))
         return(URL+MEDIA_URL+str(obj.photo))
-
+    
     def get_plan_subscription(self, obj):
         image = ''
         arrpayments = []

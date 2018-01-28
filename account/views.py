@@ -23,6 +23,8 @@ from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route, list_route
 #from account.tasks import disableCodeRecoveryPassword
 import re
+import base64
+from ezonseller.settings import MEDIA_ROOT
 #status-code-response
 STATUS = {
     "200": status.HTTP_200_OK,
@@ -281,6 +283,11 @@ class ProfileViewSet(viewsets.ModelViewSet):
              return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
         user.photo = request.data.get('photo')
         user.save()
+        image = open(MEDIA_ROOT+'/'+str(user.photo), 'rb') #open binary file in read mode
+        image_read = image.read()
+        image_64_encode = base64.encodestring(image_read)
+        user.photo64 = image_64_encode.decode()
+        user.save()   
         serializer_data = serializers.ProfileUserSerializers(user, many=False)
         serializer = serializer_data.data
         serializer['message']= 'The profile image has been change successfully'
