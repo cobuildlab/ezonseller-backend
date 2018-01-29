@@ -21,7 +21,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
 from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route, list_route
-#from account.tasks import disableCodeRecoveryPassword
+from account.tasks import disableCodeRecoveryPassword
 import re
 import base64
 from ezonseller.settings import MEDIA_ROOT
@@ -140,8 +140,8 @@ class RequestRecoverPassword(APIView):
             return Response({'message': 'The email not exist in database'}, status=STATUS['400'])
 
         if notify_views.recover_password(user, request):
-            #expire = datetime.now() + timedelta(minutes=10)
-            #disableCodeRecoveryPassword.apply_async(args=[user.id], eta=expire)
+            expire = datetime.now() + timedelta(minutes=10)
+            disableCodeRecoveryPassword.apply_async(args=[user.id], eta=expire)
             return Response({'message': 'The email has been send'})
         return Response({'message': 'The email cannot be sent'}, status=STATUS['500'])
     
