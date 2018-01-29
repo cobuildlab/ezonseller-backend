@@ -8,6 +8,7 @@ from django.utils.encoding import force_bytes, force_text
 from account.tokens import account_activation_token
 import string
 import random
+from ezonseller import settings
 
 
 def pass_generator(size=20, chars=string.ascii_uppercase + string.digits):
@@ -16,14 +17,15 @@ def pass_generator(size=20, chars=string.ascii_uppercase + string.digits):
 
 def recover_password(user, request):
     try:
-        current_site = get_current_site(request)
+        #current_site = get_current_site(request)
+        #current_site.domain
         new_code = pass_generator(20)
         to = user.email
         data = {'msg': 'Your new password',
                 'code': new_code,
                 'username': user.username,
                 'domain_fron': 'ezonseller.herokuapp.com',
-                'domain_back': current_site.domain
+                'url': settings.URL,
                 }
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/recovery_password.html", data)
@@ -42,10 +44,9 @@ def recover_password(user, request):
 
 def activate_account(user, request):
     try:
-        current_site = get_current_site(request)
         to = user.email
         data = {'domain_fron': 'ezonseller.herokuapp.com',
-                'domain_back': current_site.domain,
+                'url': settings.URL,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
                 'username': user.username,
@@ -66,10 +67,9 @@ def activate_account(user, request):
 
 def support_notify(user, request):
     try:
-        current_site = get_current_site(request)
         to = user.email
         data = {
-            'domain_back': current_site.domain,
+            'url': settings.URL,
             "msg": 'Contact Support',
             'username': user.username,
         }

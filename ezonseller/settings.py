@@ -30,7 +30,8 @@ AMAZON_ASSOCIATE_TAG = 'ezonseller-20'
 AMAZON_ACCESS_KEY_ID = 'AKIAJNSQTMKQ2VCLMZPQ'
 AMAZON_SECRECT_ACCESS_KEY = 'g870VvsBmBbb5YuWrmME7hJ/ZgIc12wtHdfm6q5I'
 EBAY_SECRECT_KEY = 'carlosol-ezonsell-PRD-051ca6568-e7f40784'
-URL = 'https://ezonseller-backend.herokuapp.com'
+URL = 'https://ezonsellerbackend.herokuapp.com'
+#URL = 'http://127.0.0.1:8000'
 # SECURITY WARNING: don't run with debug turned on in production!
 
 #if env('DEBUG') == "True":
@@ -38,9 +39,9 @@ DEBUG = True
 #else:
 #    DEBUG = False
 
-ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com',
+ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com','ezonsellerbackend.herokuapp.com',
                  'localhost', '127.0.0.1:8000', '127.0.0.1', '127.0.0.1:8080',
-                 'ezonseller.herokuapp.com', '0.0.0.0:8080', '0.0.0.0', '192.168.0.12']
+                 'ezonseller.herokuapp.com']
 
 
 # Application definition
@@ -138,9 +139,9 @@ DATABASES['default'].update(db_from_env)
 #Email-AppProjecturation
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'no-reply@stcsolutions.com.ve'
+EMAIL_HOST_PASSWORD = 'v<.VY?GA$+2HK'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'workdeveloper2000@gmail.com'
-EMAIL_HOST_PASSWORD = '7410136205car1992'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -303,7 +304,12 @@ LOGGING = {
 """
 #celery
 #CELERY_BROKER_URL = 'amqp://localhost'
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+#CELERY_BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = os.environ.get("REDISCLOUD_URL", "django://")
+BROKER_TRANSPORT_OPTIONS = {
+    "max_connections": 2,
+}
+BROKER_POOL_LIMIT = None
 #CELERY_BROKER_URL = os.environ['REDIS_URL']
 #CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
 
