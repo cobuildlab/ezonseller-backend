@@ -41,7 +41,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com','ezonsellerbackend.herokuapp.com',
                  'localhost', '127.0.0.1:8000', '127.0.0.1', '127.0.0.1:8080',
-                 'ezonseller.herokuapp.com']
+                 'ezonseller.herokuapp.com', '192.168.0.12',]
 
 
 # Application definition
@@ -277,6 +277,13 @@ STATICFILES_DIRS = (
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 AUTH_USER_MODEL = "account.User"
+
+#recaptcha
+RECAPTCHA_CAPTCHA_URL = "https://www.google.com/recaptcha/api/siteverify"
+RECAPTCHA_PUBLIC_KEY = '6LejRUMUAAAAAEmqctY7MvmGQ3_AAvKcuvYKBU0x'
+RECAPTCHA_PRIVATE_KEY = '6LejRUMUAAAAANzCyOu8_DAc-Rl7BpXRCfKxyvek'
+
+
 """
 LOGGING = {
     'version': 1,

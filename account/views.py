@@ -24,7 +24,9 @@ from rest_framework.decorators import detail_route, list_route
 from account.tasks import disableCodeRecoveryPassword
 import re
 import base64
-from ezonseller.settings import MEDIA_ROOT
+import requests
+import json
+from ezonseller import settings
 #status-code-response
 STATUS = {
     "200": status.HTTP_200_OK,
@@ -109,6 +111,13 @@ class RegisterView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        recaptcha_response = request.data['callback']
+        r = requests.post(settings.RECAPTCHA_CAPTCHA_URL, {
+            'secret': settings.RECAPTCHA_PRIVATE_KEY,
+            'response': recaptcha_response
+        })
+        if not json.loads(r.content.decode())['success']:
+            return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=STATUS['400'])
         user_serializer = validations.UserCreateSerializers(data=request.data)
         if user_serializer.is_valid() is False:
             errors_msg = []
@@ -283,7 +292,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
              return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
         user.photo = request.data.get('photo')
         user.save()
-        image = open(MEDIA_ROOT+'/'+str(user.photo), 'rb') #open binary file in read mode
+        image = open(settings.MEDIA_ROOT+'/'+str(user.photo), 'rb') #open binary file in read mode
         image_read = image.read()
         image_64_encode = base64.encodestring(image_read)
         user.photo64 = image_64_encode.decode()
