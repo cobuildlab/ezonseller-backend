@@ -20,7 +20,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 #from django.core.cache import cache
 import datetime
 #from django.core.cache import caches
-from product.tasks import verifyStatusAmazonAccount
+#from product.tasks import verifyStatusAmazonAccount
 log = logging.getLogger('product.views')
 
 #status-code-response
@@ -76,6 +76,7 @@ class CountryView(APIView):
         serializer = serializers.CountrySerializers(queryset, many=True)
         return Response(serializer.data)
 
+
 class LastSearchView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -83,6 +84,7 @@ class LastSearchView(APIView):
         queryset = CacheAmazonSearch.objects.filter(user=request.user)
         serializer = serializers.AmazonProductSerializers(queryset, many=True)
         return Response(serializer.data)
+
 
 class SearchAmazonView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -104,15 +106,15 @@ class SearchAmazonView(APIView):
             print(price)
             print(description)
             created = CacheAmazonSearch.objects.create(
-                user = user,
-                title = item.get('title'),
+                user=user,
+                title=item.get('title'),
                 asin=item.get('asin'), 
-                large_image_url = item.get('large_image_url'),
-                availability= item.get('availability'),
-                detail_page_url= item.get('detail_page_url'),
-                price_and_currency= price,
-                offer_url= item.get('offer_url'), 
-                features= description,)
+                large_image_url=item.get('large_image_url'),
+                availability=item.get('availability'),
+                detail_page_url=item.get('detail_page_url'),
+                price_and_currency=price,
+                offer_url=item.get('offer_url'),
+                features=description,)
         return True
 
     def get(self, request):
@@ -153,12 +155,11 @@ class SearchAmazonView(APIView):
             if amazon_user.limit == 0:
                 amazon_user.date_end = datetime.datetime.now()
                 amazon_user.save()
-                expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
-                verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
+                #expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
+                #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
                 #cache.set('amazon-key', amazon_user.limit)
                 return Response(
-                    {'message': 'You have reached the limit of allowed searches for one day, '
-                               'please wait a day to be able to perform searches again '}, status=STATUS['400'])
+                    {'message': 'You have reached the limit of allowed searches'}, status=STATUS['400'])
             else:
                 if offset == 0 or offset == "0":
                     rest = amazon_user.limit - 1
@@ -180,11 +181,10 @@ class SearchAmazonView(APIView):
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
         serializer = serializer_data.data
-        self.saveProductSearch(serializer,request.user)
+        self.saveProductSearch(serializer, request.user)
         serializer.append({'total_items': count})
         return Response(serializer)
 
-    
 
 class SearchEbayView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
