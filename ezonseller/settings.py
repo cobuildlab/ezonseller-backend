@@ -217,6 +217,8 @@ CORS_ORIGIN_WHITELIST = (
      '127.0.0.1:3001',
      '0.0.0.0:8080',
      'https://ezonseller.herokuapp.com/',
+     'https://ezonsellerfrontend.herokuapp.com/',
+     'ezonsellerfrontend.herokuapp.com',
      'ezonseller.herokuapp.com'
      )
 CORS_ALLOW_METHODS = (
