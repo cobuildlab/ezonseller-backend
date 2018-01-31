@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+
 class Country(models.Model):
     name = models.CharField(_('Country_name'),max_length=60, null=False)
     code = models.CharField(_('Code'),max_length=3, blank=True, null=False)
@@ -10,6 +11,7 @@ class Country(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class CacheAmazonSearch(models.Model):
     user = models.ForeignKey('account.User', related_name='amazon_user_cache', on_delete=models.CASCADE, blank=True, null=True)
@@ -21,6 +23,7 @@ class CacheAmazonSearch(models.Model):
     price_and_currency = models.CharField(_('Price'), max_length=20, blank=True, null=True)
     offer_url = models.CharField(_('Offer'), max_length=400, blank=False, null=False )
     features = models.TextField(_('Description'), blank=False, null=False)
+
 
 class AmazonAssociates(models.Model):
     user = models.ForeignKey('account.User', related_name='amazon_user', on_delete=models.CASCADE, blank=True, null=True)

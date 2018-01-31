@@ -24,7 +24,7 @@ def recover_password(user, request):
         data = {'msg': 'Your new password',
                 'code': new_code,
                 'username': user.username,
-                'domain_fron': 'ezonseller.herokuapp.com',
+                'domain_fron': 'ezonsellerfrontend.herokuapp.com',
                 'url': settings.URL,
                 }
         subject, from_email = data['msg'], EMAIL_HOST_USER
@@ -45,7 +45,7 @@ def recover_password(user, request):
 def activate_account(user, request):
     try:
         to = user.email
-        data = {'domain_fron': 'ezonseller.herokuapp.com',
+        data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
                 'url': settings.URL,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),

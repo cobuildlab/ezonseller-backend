@@ -11,7 +11,7 @@ PLAN_DURATION = (
     (FIRST_DURATION, _('1 mounth')),
     #(SECOND_DURATION, _('3 mounth')),
     #(THIRD_DURATION, _('6 mounth')),
-    #(FOURTH_DURATION, _('1 year')),
+    (FOURTH_DURATION, _('1 year')),
     #(FIFTH_DURATION, _('2 year')),
     #(SIX_DURATION, _('3 year')),
     )
@@ -22,9 +22,9 @@ class PlanSubscription(models.Model):
     list = models.ManyToManyField('PlanSubscriptionList', verbose_name=_('PlanSubscriptionLists'), blank=True)
     type_plan = models.CharField(_('Type_plan'), max_length=20, null=False)
     image = models.ImageField(_('image'), blank=True, null=True)
-    cost = models.FloatField(_('Plan_Cost'), default=0)
+    cost = models.DecimalField(_('Plan_Cost'), max_digits=10, decimal_places=2, blank=False, null=False)
     description = models.TextField(_('Description'), null=False)
-    duration = models.CharField(_('Duration'), choices=PLAN_DURATION, default=FIRST_DURATION , max_length=50, blank=True, null=True)
+    duration = models.CharField(_('Duration'), choices=PLAN_DURATION, default=FIRST_DURATION, max_length=50, blank=True, null=True)
     terms = models.TextField(_('TermsCondition'), null=False)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
@@ -119,11 +119,13 @@ class CreditCard(models.Model):
 
 class PaymentHistory(models.Model):
     user = models.ForeignKey('account.User', related_name='payment_user', on_delete=models.CASCADE, blank=True, null=True)
+    payerID = models.CharField(max_length=140, null=True, blank=True)
+    paymentId = models.CharField(max_length=140, null=True, blank=True)
     id_plan = models.IntegerField(_('id_plan'), blank=True, null=True)
     title = models.CharField(_('Title'), max_length=100, blank=False, null=False)
-    cost = models.FloatField(_('Plan_Cost'), default=0)
+    cost = models.DecimalField(_('Plan_Cost'), max_digits=10, decimal_places=2, blank=False, null=False)
     image = models.ImageField(_('image'), blank=True, null=True)
-    description = models.TextField(_('Description'),blank=True, null=True)
+    description = models.TextField(_('Description'), blank=True, null=True)
     id_card = models.IntegerField(_('id_card'), blank=True, null=True)
     name = models.CharField(_('Name'), max_length=50, null=False)
     number_card = models.CharField(_('Number_Card'), max_length=20, null=False)

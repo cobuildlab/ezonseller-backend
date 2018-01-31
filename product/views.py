@@ -205,7 +205,7 @@ class SearchEbayView(APIView):
         except EbayAssociates.DoesNotExist:
             return Response({'message': 'you do not have an ebay account associated to perform the search'})
         try:
-            ebay_api = Finding(appid=ebay_user.client_id, config_file=None)
+            ebay_api = Finding(siteid='EBAY-ES', appid=ebay_user.client_id, config_file=None)
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
             elements = response.dict()
             if elements.get('searchResult').get('_count') == '0':
