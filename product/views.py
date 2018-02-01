@@ -90,21 +90,15 @@ class SearchAmazonView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def saveProductSearch(self, obj, user):
-        CacheAmazonSearch.objects.filter(user=user).delete()
+        product = CacheAmazonSearch.objects.filter(user=user).order_by('id')
+        if len(product) == 12:
+            product[0].delete()
         for item in obj:
             description = ''
             price = ''
             for text in item.get('features'):
                 description += text 
             price=str(item.get('price_and_currency')[0]) +' '+str(item.get('price_and_currency')[1])
-            print(item.get('asin'))
-            print(item.get('large_image_url'))
-            print(item.get('availability'))
-            print(item.get('detail_page_url'))
-            print(item.get('offer_url'))
-            print(item.get('price_and_currency'))
-            print(price)
-            print(description)
             created = CacheAmazonSearch.objects.create(
                 user=user,
                 title=item.get('title'),
@@ -115,6 +109,7 @@ class SearchAmazonView(APIView):
                 price_and_currency=price,
                 offer_url=item.get('offer_url'),
                 features=description,)
+            break
         return True
 
     def get(self, request):
@@ -159,7 +154,9 @@ class SearchAmazonView(APIView):
                 #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
                 #cache.set('amazon-key', amazon_user.limit)
                 return Response(
-                    {'message': 'You have reached the limit of allowed searches'}, status=STATUS['400'])
+                    {'message': 'You have reached the limit of allowed searches,'
+                                'please purchase one plan of our selection, to continue performing searches'},
+                    status=STATUS['400'])
             else:
                 if offset == 0 or offset == "0":
                     rest = amazon_user.limit - 1

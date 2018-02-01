@@ -46,10 +46,18 @@ class CancelSubscriptionSerializers(serpy.Serializer):
 class CreditCardSerializers(serpy.Serializer):
     id = serpy.Field()
     name = serpy.Field()
-    type_card = serpy.Field()
     number_card = serpy.Field()
     cod_security = serpy.Field()
-    date_expiration = serpy.Field()
+    month = serpy.MethodField()
+    year = serpy.MethodField()
+
+    def get_month(self, obj):
+        month = str(obj.date_expiration)
+        return month[5:7]
+
+    def get_year(self, obj):
+        month = str(obj.date_expiration)
+        return month[2:4]
 
 
 class PaymentHistorySerializer(serpy.Serializer):

@@ -15,7 +15,7 @@ class UserSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = accounts_models.User
-        fields = ('username','password', 'first_name', 'last_name', 'email', 'photo', 'type')
+        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'myPayPal', 'photo', 'type')
         extra_kwargs = {
             'password': {'write_only': True},
             'username': {'read_only': True}
@@ -46,6 +46,8 @@ class UserSerializers(serializers.ModelSerializer):
             elif accounts_models.User.objects.filter(username__iexact=validated_data.get('username')).exists():
                 raise serializers.ValidationError({'message': [_("El nombre de usuario ya fue registrado")]})
             instance.username = validated_data.get('username')
+        if validated_data.get('myPayPal'):
+            instance.myPayPal = validated_data.get('myPayPal')
         if 'photo' in validated_data.keys() and validated_data.get('photo'):
             instance.photo = validated_data.get('photo')
         instance.save()    
