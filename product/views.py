@@ -81,7 +81,7 @@ class LastSearchView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        queryset = CacheAmazonSearch.objects.filter(user=request.user)
+        queryset = CacheAmazonSearch.objects.filter(user=request.user).order_by('-id')
         serializer = serializers.AmazonProductSerializers(queryset, many=True)
         return Response(serializer.data)
 

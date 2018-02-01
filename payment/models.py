@@ -116,6 +116,43 @@ class CreditCard(models.Model):
     def __str__(self):
         return self.user.username
 
+PAID = 'paid'
+NO_PAYED = 'notpaid'
+REFUNDED = 'refunded'
+REJECTED = 'rejected'
+
+STATUS_PAYMENT = (
+    (PAID, _('Paid')),
+    (NO_PAYED, _('Not Paid')),
+    (REFUNDED, _('Refunded')),
+    (REJECTED, _('Rejected')),
+)
+
+PAYPAL = 'paypal'
+CREDITCARD = 'creditcard'
+
+PAYMENT_METHOD = (
+    (PAYPAL, _('PayPal')),
+    (CREDITCARD, _('CreditCard')),
+)
+
+
+class Transaction(models.Model):
+    user = models.ForeignKey("account.User", related_name='userTransaction', on_delete=models.CASCADE, blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_PAYMENT, default=NO_PAYED)
+    payerID = models.CharField(max_length=140, null=True, blank=True)
+    paymentId = models.CharField(max_length=140, null=True, blank=True)
+    paymentMethod = models.CharField(max_length=12, choices=PAYMENT_METHOD, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    modified = models.DateTimeField(auto_now=True, editable=False)
+
+    class Meta:
+        ordering = ['created']
+
+    def __str__(self):
+        return self.user.username
+
 
 class PaymentHistory(models.Model):
     user = models.ForeignKey('account.User', related_name='payment_user', on_delete=models.CASCADE, blank=True, null=True)

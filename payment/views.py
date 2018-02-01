@@ -17,6 +17,8 @@ from datetime import datetime
 from datetime import timedelta
 from calendar import isleap
 from payment.pagination import paginate
+import paypalrestsdk
+from ezonseller import settings
 import re
 from rest_framework.decorators import detail_route, list_route
 
@@ -69,6 +71,47 @@ class TermsConditionView(APIView):
 class PurchasePlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def paymentPlan(self, plan, card):
+
+        item = []
+        item.append({
+            "name": str(plan.title),
+            "sku": str(plan.id),
+            "price": ('%.2f' % plan.cost),
+            "currency": "USD",
+            "quantity": 1,
+        })
+        paypalrestsdk.configure({
+            'mode': settings.PAYPAL_MODE,
+            'client_id': settings.PAYPAL_CLIENT_ID,
+            'client_secret': settings.PAYPAL_CLIENT_SECRECT})
+
+        payment = paypalrestsdk.Payment({
+            "intent": "sale",
+            "payer": {"payment_method": "paypal"},
+            #"redirect_urls": {
+            #    "return_url": "http://localhost:3000/payment/execute",
+            #    "cancel_url": "http://localhost:3000/"},
+            "transactions": [{
+                "item_list": {
+                    "items": item},
+                "amount": {
+                    "total": plan.cost,
+                    "currency": "USD"},
+                "description": plan.description}]})
+
+        if payment.create():
+            print("Payment[%s] created successfully" % (payment.id))
+        for link in payment.links:
+            if link.rel == "approval_url":
+                approval_url = str(link.href)
+                print("Redirect for approval: %s" % (approval_url))
+            else:
+                print("Error while creating payment:")
+                print(payment.error)
+                return False
+        return True
+
     def post(self, request):
         plan_id = request.data.get('id_plan')
         card_id = request.data.get('id_card')
@@ -92,16 +135,21 @@ class PurchasePlanView(APIView):
         except PlanSubscription.DoesNotExist:
             return Response({'message': 'the plan does not exist'}, status=STATUS['400'])
         try:
-            user = User.objects.get(username=request.user)
-            user.type_plan = plan.title
-            user.id_plan = plan.id
-            user.save()
-            card = CreditCard.objects.get(user=user, id=card_id)
+            card = CreditCard.objects.get(user=request.user, id=card_id)
         except CreditCard.DoesNotExist:
             return Response(
                 {'message': 'the credit card with you buy this plan dont belong a your account, or not exist'},
                 status=STATUS['400']
             )
+
+        payment = self.paymentPlan(plan,card)
+        if not payment:
+            return  Response({}, status=STATUS['400'])
+
+        user = User.objects.get(username=request.user)
+        user.type_plan = plan.title
+        user.id_plan = plan.id
+        user.save()
         plan_finish = extract_date(plan.duration)
 
         payment = PaymentHistory.objects.create(
