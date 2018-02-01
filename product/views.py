@@ -191,21 +191,28 @@ class SearchEbayView(APIView):
 
     def get(self, request):
         user = request.user
+        country_id = {'DE':'EBAY-DE','CA':'EBAY-ENCA','ES':'EBAY-ES','FR':'EBAY-FR',
+        'UK':'EBAY-GB','CN':'EBAY-HK','IN':'EBAY-IN','IT':'EBAY-IT','US':'EBAY-US'}
         keyword = request.GET.get('keyword')
+        country = request.GET.get('country')
         limit = request.GET.get('limit', None)
         offset = request.GET.get('offset', None)
         if not limit:
-            return Response({'message': 'the limit is required, cant be empty'})
+            return Response({'message': 'The limit is required, cant be empty'}, status=STATUS['400'])
         if not offset:
-            return Response({'message': 'the offset is required, cant be empty'})
+            return Response({'message': 'The offset is required, cant be empty'}, status=STATUS['400'])
         if not keyword:
-            return Response({'message': 'the keyword cant be empty'})
+            return Response({'message': 'The keyword cant be empty'}, status=STATUS['400'])
+        if not country:
+            return Response({'message':'The country cant be empty'}, status=STATUS['400'])
+        if country_id.get(country) == None:
+            return Response({'message':'The country you send does not exist in global ebay api'}, status=STATUS['400'])
         try:
             ebay_user = EbayAssociates.objects.get(user=user)
         except EbayAssociates.DoesNotExist:
             return Response({'message': 'you do not have an ebay account associated to perform the search'})
         try:
-            ebay_api = Finding(siteid='EBAY-ES', appid=ebay_user.client_id, config_file=None)
+            ebay_api = Finding(siteid=country_id.get(country), appid=ebay_user.client_id, config_file=None)
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
             elements = response.dict()
             if elements.get('searchResult').get('_count') == '0':
