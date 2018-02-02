@@ -45,7 +45,8 @@ class CancelSubscriptionSerializers(serpy.Serializer):
 
 class CreditCardSerializers(serpy.Serializer):
     id = serpy.Field()
-    name = serpy.Field()
+    first_name = serpy.Field()
+    last_name = serpy.Field()
     number_card = serpy.Field()
     cod_security = serpy.Field()
     month = serpy.MethodField()

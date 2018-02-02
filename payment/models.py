@@ -102,7 +102,8 @@ TYPE_CARD = (
 
 class CreditCard(models.Model):
     user = models.ForeignKey('account.User', related_name='card_user', on_delete=models.CASCADE, blank=True, null=True)
-    name = models.CharField(_('Name'), max_length=50, null=False)
+    first_name = models.CharField(_('First_name'), max_length=50, blank=True, null=False)
+    last_name = models.CharField(_('Last_name'), max_length=50, blank=True, null=False)
     type_card = models.CharField(_('Type_Card'), choices=TYPE_CARD, max_length=20, null=False)
     number_card = models.CharField(_('Number_Card'), max_length=20, null=False)
     cod_security = models.CharField(_('Code_Security'), max_length=4, null=False)
@@ -111,44 +112,7 @@ class CreditCard(models.Model):
     modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
-        ordering = ['name']
-
-    def __str__(self):
-        return self.user.username
-
-PAID = 'paid'
-NO_PAYED = 'notpaid'
-REFUNDED = 'refunded'
-REJECTED = 'rejected'
-
-STATUS_PAYMENT = (
-    (PAID, _('Paid')),
-    (NO_PAYED, _('Not Paid')),
-    (REFUNDED, _('Refunded')),
-    (REJECTED, _('Rejected')),
-)
-
-PAYPAL = 'paypal'
-CREDITCARD = 'creditcard'
-
-PAYMENT_METHOD = (
-    (PAYPAL, _('PayPal')),
-    (CREDITCARD, _('CreditCard')),
-)
-
-
-class Transaction(models.Model):
-    user = models.ForeignKey("account.User", related_name='userTransaction', on_delete=models.CASCADE, blank=True, null=True)
-    status = models.CharField(max_length=10, choices=STATUS_PAYMENT, default=NO_PAYED)
-    payerID = models.CharField(max_length=140, null=True, blank=True)
-    paymentId = models.CharField(max_length=140, null=True, blank=True)
-    paymentMethod = models.CharField(max_length=12, choices=PAYMENT_METHOD, blank=True, null=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    modified = models.DateTimeField(auto_now=True, editable=False)
-
-    class Meta:
-        ordering = ['created']
+        ordering = ['id']
 
     def __str__(self):
         return self.user.username

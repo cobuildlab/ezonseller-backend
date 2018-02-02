@@ -6,7 +6,8 @@ import re
 
 
 class CreditCardValidations(serializers.ModelSerializer):
-    name = serializers.CharField(required=True, max_length=50)
+    first_name = serializers.CharField(required=True, max_length=50)
+    last_name = serializers.CharField(required=True, max_length=50)
     type_card = serializers.CharField(required=True, max_length=20)
     number_card = serializers.CharField(required=True, min_length=6, max_length=20)
     cod_security = serializers.CharField(required=True, max_length=4)
@@ -14,7 +15,7 @@ class CreditCardValidations(serializers.ModelSerializer):
 
     class Meta:
         model = CreditCard
-        fields = ('id', 'name', 'type_card', 'number_card', 'cod_security',
+        fields = ('id', 'first_name', 'last_name', 'type_card', 'number_card', 'cod_security',
                   'date_expiration')
 
     def validate_number_card(self, number_card):
@@ -30,8 +31,10 @@ class CreditCardValidations(serializers.ModelSerializer):
         return cod_security
 
     def validate(self, attrs):
-        if not attrs.get('name'):
-            raise serializers.ValidationError({'message': [_('The name of credit card is required')]})
+        if not attrs.get('first_name'):
+            raise serializers.ValidationError({'message': [_('The first_name of credit card is required')]})
+        if not attrs.get('last_name'):
+            raise serializers.ValidationError({'message': [_('The last_name of credit card is required')]})
         if not attrs.get('type_card'):
             raise serializers.ValidationError({'message': [_('The type of card is required')]})
         if not attrs.get('number_card'):
@@ -48,8 +51,10 @@ class CreditCardValidations(serializers.ModelSerializer):
         return card
 
     def update(self, instance, validated_data):
-        if validated_data.get('name'):
-           instance.name = validated_data.get('name')
+        if validated_data.get('first_name'):
+           instance.name = validated_data.get('first_name')
+        if validated_data.get('last_name'):
+           instance.name = validated_data.get('last_name')
         if validated_data.get('type_card'):
             instance.type_card = validated_data.get('type_card')
         if validated_data.get('number_card'):

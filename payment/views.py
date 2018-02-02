@@ -72,45 +72,48 @@ class PurchasePlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def paymentPlan(self, plan, card):
-
-        item = []
-        item.append({
-            "name": str(plan.title),
-            "sku": str(plan.id),
-            "price": ('%.2f' % plan.cost),
-            "currency": "USD",
-            "quantity": 1,
-        })
+        mounth = str(card.date_expiration)
+        year = mounth
         paypalrestsdk.configure({
             'mode': settings.PAYPAL_MODE,
             'client_id': settings.PAYPAL_CLIENT_ID,
             'client_secret': settings.PAYPAL_CLIENT_SECRECT})
-
-        payment = paypalrestsdk.Payment({
+        data = {
             "intent": "sale",
-            "payer": {"payment_method": "paypal"},
-            #"redirect_urls": {
-            #    "return_url": "http://localhost:3000/payment/execute",
-            #    "cancel_url": "http://localhost:3000/"},
-            "transactions": [{
-                "item_list": {
-                    "items": item},
-                "amount": {
-                    "total": plan.cost,
-                    "currency": "USD"},
-                "description": plan.description}]})
-
+            "payer": {
+                "payment_method": "credit_card",
+                "funding_instruments": [
+                    {
+                        "credit_card": {
+                            "number": str(card.number_card),
+                            "type": str(card.type_card),
+                            "expire_month": mounth[5:7],
+                            "expire_year": year[0:4],
+                            "cvv2": str(card.cod_security),
+                            "first_name":card.first_name,
+                            "last_name": card.last_name
+                        }
+                    }
+                ]
+            },
+            "transactions": [
+                {
+                    "amount": {
+                        "total": str(plan.cost),
+                        "currency": "USD"
+                    },
+                    "description": str(plan.description[0:126])
+                }
+            ]
+        }
+        payment = paypalrestsdk.Payment(data)
         if payment.create():
-            print("Payment[%s] created successfully" % (payment.id))
-        for link in payment.links:
-            if link.rel == "approval_url":
-                approval_url = str(link.href)
-                print("Redirect for approval: %s" % (approval_url))
-            else:
-                print("Error while creating payment:")
-                print(payment.error)
-                return False
-        return True
+            print("Payment created successfully")
+            return {'payment_id': payment.id}
+        else:
+            print(payment.error)
+            return None
+        return None
 
     def post(self, request):
         plan_id = request.data.get('id_plan')
@@ -142,25 +145,26 @@ class PurchasePlanView(APIView):
                 status=STATUS['400']
             )
 
-        payment = self.paymentPlan(plan,card)
+        payment = self.paymentPlan(plan, card)
         if not payment:
-            return  Response({}, status=STATUS['400'])
+            return Response({'message': 'payment could not be made, please notify your bank distributor'},
+                            status=STATUS['400'])
 
         user = User.objects.get(username=request.user)
         user.type_plan = plan.title
         user.id_plan = plan.id
         user.save()
         plan_finish = extract_date(plan.duration)
-
         payment = PaymentHistory.objects.create(
             user=user,
             id_plan=plan.id,
+            paymentId=payment.get('payment_id'),
             title=plan.title,
             cost=plan.cost,
             image=plan.image,
-            description = plan.description,
+            description=plan.description,
             id_card=card.id,
-            name=card.name,
+            name=card.first_name + card.last_name,
             number_card=card.number_card,
             cod_security=card.cod_security,
             date_expiration=card.date_expiration,

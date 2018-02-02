@@ -57,7 +57,8 @@ class ProfileUserSerializers(serpy.Serializer):
         for card in cards:
             data = {
                 'id': card.id,
-                'name': card.name,
+                'first_name': card.first_name,
+                'last_name': card.last_name,
                 'number_card': card.number_card,
                 'type_card': card.type_card,
                 'date_expiration': card.date_expiration

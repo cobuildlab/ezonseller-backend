@@ -3,7 +3,7 @@ from payment import models as payment_models
 
 
 class CreditCardAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'name', 'type_card', 'date_expiration', 'modified')
+    list_display = ('id', 'user', 'first_name', 'last_name', 'type_card', 'date_expiration', 'modified')
     search_fields = ('name',)
     list_filter = ('type_card',)
 
