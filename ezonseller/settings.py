@@ -26,10 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
-AMAZON_ASSOCIATE_TAG = 'ezonseller-20'
-AMAZON_ACCESS_KEY_ID = 'AKIAJNSQTMKQ2VCLMZPQ'
-AMAZON_SECRECT_ACCESS_KEY = 'g870VvsBmBbb5YuWrmME7hJ/ZgIc12wtHdfm6q5I'
-EBAY_SECRECT_KEY = 'carlosol-ezonsell-PRD-051ca6568-e7f40784'
+
 
 #paypal secret keys
 PAYPAL_MODE = 'sandbox' #or live
@@ -187,6 +184,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'PAGINATE_BY_PARAM': 'page_size',
     'DATETIME_FORMAT': "%d-%m-%Y %H:%M:%S",
 }
 
@@ -317,7 +317,7 @@ LOGGING = {
 }
 """
 #celery
-CELERY_BROKER_URL = 'amqp://localhost'
+#CELERY_BROKER_URL = 'amqp://localhost'
 #CELERY_BROKER_URL = 'redis://localhost:6379/0'
 #rediscloud
 #BROKER_URL = os.environ.get("REDISCLOUD_URL", "django://")
@@ -326,13 +326,13 @@ CELERY_BROKER_URL = 'amqp://localhost'
 #}
 #BROKER_POOL_LIMIT = None
 #rabbitmqcloud
-#BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
-#BROKER_POOL_LIMIT = 1
-#BROKER_CONNECTION_MAX_RETRIES = None
+BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
+BROKER_POOL_LIMIT = 1
+BROKER_CONNECTION_MAX_RETRIES = None
 #if BROKER_URL == "django://":
 #    INSTALLED_APPS += ("kombu.transport.django",)
 
-#CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 #CELERY_BROKER_URL = os.environ['REDIS_URL']
 #CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
 

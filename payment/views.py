@@ -6,7 +6,8 @@ from rest_framework import authentication, permissions
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
-from payment.pagination import PaymentHistoryPagination
+from rest_framework.pagination import PageNumberPagination
+from payment.pagination import PaymentHistoryPaginations
 from payment.models import PlanSubscription, PlanSubscriptionList, \
     TermsCondition, CreditCard, PaymentHistory, CancelSubscription, \
     CancelSubscriptionEdition, CancelSubscriptionList
@@ -191,11 +192,13 @@ class CancelSubscriptionView(APIView):
         data = request.data
         user = User.objects.get(id=request.user.id)
         if not data.get('id_plan'):
-            return Response({'message': 'the request with the plan id cant be empty'})
-        if not data.get('reason'):
-            return Response({'message': 'the option to cancel the plan cant be empty'})
+            return Response({'message': 'the request with the plan id cant be empty'}, status=STATUS['400'])
         if not data.get('option'):
-            return Response({'message': 'the reason to cancel the plan cant be empty'})
+            return Response({'message': 'the reason to cancel the plan cant be empty'}, status=STATUS['400'])
+        if not data.get('reason'):
+            reason = 'null'
+        else:
+            reason = data.get('reason')
         try:
             plan = PlanSubscription.objects.get(id=data.get('id_plan'))
         except PlanSubscription.DoesNotExist:
@@ -212,7 +215,7 @@ class CancelSubscriptionView(APIView):
             user=user,
             plan=plan,
             option=data.get('option'),
-            reason=data.get('reason'),
+            reason=reason,
         )
         return Response({'message': 'the cancel subscription of plan has been accept successfully'})
 
@@ -279,19 +282,12 @@ class PlanView(APIView):
 
 class PaymentHistoryView(ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
-    
+
     def get(self, request):
-        limit = request.GET.get('limit', None)
-        offset = request.GET.get('offset', None)
-        if not limit:
-            return Response({'message': 'the limit is required, cant be empty'})
-        if not offset:
-            return Response({'message': 'the offset is required, cant be empty'})
-        queryset = PaymentHistory.objects.filter(user=request.user)
-        list_paginated = paginate(qs=queryset, limit=limit, offset=offset)
-        serializer_data = serializers.PaymentHistorySerializer(list_paginated, many=True)
-        serializer = serializer_data.data
-        serializer.append({'total_items': len(queryset)})
-        return Response(serializer)
+        paginator = PageNumberPagination()
+        queryset = PaymentHistory.objects.filter(user=request.user).order_by('id')
+        context = paginator.paginate_queryset(queryset, request)
+        serializer = serializers.PaymentHistorySerializer(context, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 

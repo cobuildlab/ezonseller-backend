@@ -1,5 +1,16 @@
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import PageNumberPagination
 from math import fabs
+
+
+class PaymentHistoryPaginations(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+
+
+class PaymentHistoryPagination(LimitOffsetPagination):
+    default_limit = 10
+    max_limit = 10
 
 
 def paginate_queryset(qs, **kwargs):
@@ -48,6 +59,3 @@ def paginate(qs, **kwargs):
     return qs
 
 
-class PaymentHistoryPagination(LimitOffsetPagination):
-    default_limit = 10
-    max_limit = 10
