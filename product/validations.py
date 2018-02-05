@@ -33,16 +33,16 @@ class AmazonKeyValidations(serializers.ModelSerializer):
         associate_tag = attrs.get('associate_tag')
         
         if not associate_tag:
-            raise serializers.ValidationError({'message': [_(u"The amazon associate username is required")]})
+            raise serializers.ValidationError("The amazon associate username is required")
         if not attrs.get('access_key_id'):
-            raise serializers.ValidationError({'message': [_(u"The amazon access key is required")]})
+            raise serializers.ValidationError("The amazon access key is required")
         if not attrs.get('secrect_access_key'):
-            raise serializers.ValidationError({'message': [_(u"The amazon secrect key is required")]})
+            raise serializers.ValidationError("The amazon secrect key is required")
         queryset = AmazonAssociates.objects
         queryset = queryset.filter(country=country_id, 
                                    associate_tag=associate_tag)
         if queryset.exists():
-            raise serializers.ValidationError({"message": [_(u"the amazon associate username i can not be with the same country")]})
+            raise serializers.ValidationError("The amazon associate username i can not be with the same country")
         return attrs
 
     def create(self, validated_data):
@@ -58,8 +58,8 @@ class AmazonKeyValidations(serializers.ModelSerializer):
                 print(product.title)
                 break
         except:
-            raise serializers.ValidationError({"message":
-                            [_(u"the amazon associate username not exist or the country with you associate does not exist")]})
+            raise serializers.ValidationError({ "message":
+                    "the amazon associate username not exist in domain Amazon or the country with you associate does not exist"})
         amazon_api = AmazonAssociates.objects.create(**validated_data)
         return amazon_api
 
@@ -82,7 +82,7 @@ class EbayKeyValidations(serializers.ModelSerializer):
 
     def validate_client_id(self, client_id):
         if EbayAssociates.objects.filter(client_id=client_id).exists():
-            raise serializers.ValidationError({'message': [_(u"The ebay client_id exist")]})
+            raise serializers.ValidationError("The ebay client_id exist")
         return client_id
     
     # def validate(self, attrs):
@@ -97,7 +97,7 @@ class EbayKeyValidations(serializers.ModelSerializer):
             ebay_search = Finding(appid=ebay_id, config_file=None)
             response = ebay_search.execute('findItemsAdvanced', {'keywords': 'iphone'})
         except ConnectionError as e:
-            raise serializers.ValidationError({'message':
-                                [_(u"The ebay client_id does not exist in domain Ebay, please register another ID")]})
+            raise serializers.ValidationError(
+                {'message': "The ebay client_id does not exist in domain Ebay, please register another ID"})
         ebay = EbayAssociates.objects.create(**validated_data)
         return ebay

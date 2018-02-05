@@ -242,7 +242,14 @@ class AmazonViewSet(viewsets.ModelViewSet):
         context = {'request': request}
         serializer_data = validations.AmazonKeyValidations(data=request.data,
                                                       context=context)
-        serializer_data.is_valid(raise_exception=True)
+        #serializer_data.is_valid(raise_exception=True)
+        if serializer_data.is_valid() is False:
+            errors_msg = []
+            errors_keys = list(serializer_data.errors.keys())
+            for i in errors_keys:
+                errors_msg.append(str(i) + ": " + str(serializer_data.errors[i][0]))
+            error_msg = "".join(errors_msg)
+            return Response({'message': errors_msg[0]}, status=STATUS['400'])
         self.perform_create(serializer_data)
         serializer = serializer_data.data
         serializer['message'] = 'the amazon account has been saved successfully'
@@ -290,7 +297,14 @@ class EbayViewSet(viewsets.ModelViewSet):
         context = {'request': request}
         serializer_data = validations.EbayKeyValidations(data=request.data,
                                                     context=context)
-        serializer_data.is_valid(raise_exception=True)
+        #serializer_data.is_valid(raise_exception=True)
+        if serializer_data.is_valid() is False:
+            errors_msg = []
+            errors_keys = list(serializer_data.errors.keys())
+            for i in errors_keys:
+                errors_msg.append(str(i) + ": " + str(serializer_data.errors[i][0]))
+            error_msg = "".join(errors_msg)
+            return Response({'message': errors_msg[0]}, status=STATUS['400'])
         self.perform_create(serializer_data)
         serializer = serializer_data.data
         serializer['message'] = 'the ebay account has been saved successfully'
