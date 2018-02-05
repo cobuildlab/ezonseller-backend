@@ -237,7 +237,7 @@ class ContacSupportView(APIView):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = account_models.User.objects.all()
     serializer_class = serializers.ProfileUserSerializers
-    permission_classes = (accounts_permissions.IsOwnerOrReadOnly,permissions.IsAuthenticated)
+    permission_classes = (accounts_permissions.IsOwnerOrReadOnly, permissions.IsAuthenticated)
     http_method_names = ['get', 'put', 'delete', 'post']
 
     def list(self, request, *args, **kwargs):
@@ -261,7 +261,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         response_data['message'] = 'Your profile has been updated successfully'
         return Response(response_data)
 
-    @detail_route(methods=['post'], permission_classes=(permissions.IsAuthenticated,))
+    @detail_route(methods=['post'], permission_classes=(permissions.IsAuthenticated,accounts_permissions.IsOwnerOrReadOnly))
     def uploadImage(self, request, pk=None):
         user = account_models.User.objects.get(username=request.user)
         if not request.data.get('photo'):
@@ -270,15 +270,18 @@ class ProfileViewSet(viewsets.ModelViewSet):
         user.save()
         image = open(settings.MEDIA_ROOT+'/'+str(user.photo), 'rb') #open binary file in read mode
         image_read = image.read()
-        image_64_encode = base64.encodestring(image_read)
-        user.photo64 = image_64_encode.decode()
+        #image_64_encode = base64.encodebytes(image_read)
+        image_64_encode = base64.b64encode(image_read).decode('ascii')
+        #image_64_encode = base64.b64encode(image_read)
+        print(image_64_encode)
+        user.photo64 = image_64_encode
         user.save()   
         serializer_data = serializers.ProfileUserSerializers(user, many=False)
         serializer = serializer_data.data
         serializer['message']= 'The profile image has been change successfully'
         return Response(serializer)
 
-    @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated,))
+    @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated, accounts_permissions.IsOwnerOrReadOnly))
     def changePassword(self, request, pk=None):
         user = request.user
         serializer = validations.UserChangePasswordSerializers(user, data=request.data, context={'request': request})
