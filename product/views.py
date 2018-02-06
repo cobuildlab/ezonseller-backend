@@ -119,9 +119,9 @@ class SearchAmazonView(APIView):
         limit = request.GET.get('limit', None)
         offset = request.GET.get('offset', None)
         if not limit:
-            return Response({'message': 'the limit is required, cant be empty'})
+            return Response({'message': 'the limit is required, cant be empty'}, status=STATUS['400'])
         if not offset:
-            return Response({'message': 'the offset is required, cant be empty'})
+            return Response({'message': 'the offset is required, cant be empty'}, status=STATUS['400'])
         if not keyword:
             return Response({'message': 'the title cant be empty'}, status=STATUS['400'])
         if not country:
@@ -137,14 +137,14 @@ class SearchAmazonView(APIView):
             try:
                 country_id = Country.objects.get(code=country)
             except Country.DoesNotExist:
-                return Response({'message': 'the country does not exist'})
+                return Response({'message': 'the country does not exist'}, status=STATUS['400'])
         try:
             amazon_filter = AmazonAssociates.objects.get(user=request.user, country=country_id)
         except AmazonAssociates.DoesNotExist:
-            return Response({'message': 'You has not amazon associate assigned to your account'})
+            return Response({'message': 'You has not amazon associate assigned to your account'}, status=STATUS['400'])
 
         if not category_bool(category):
-            return Response({'message': 'The category does not exits, please send a correct category'})
+            return Response({'message': 'The category does not exits, please send a correct category'}, status=STATUS['400'])
         amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
         if request.user.type_plan == 'Free':
             if amazon_user.limit == 0:
@@ -207,7 +207,7 @@ class SearchEbayView(APIView):
         try:
             ebay_user = EbayAssociates.objects.get(user=user)
         except EbayAssociates.DoesNotExist:
-            return Response({'message': 'you do not have an ebay account associated to perform the search'})
+            return Response({'message': 'you do not have an ebay account associated to perform the search'}, status=STATUS['400'])
         try:
             ebay_api = Finding(siteid=country_id.get(country), appid=ebay_user.client_id, config_file=None)
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
