@@ -19,6 +19,7 @@ from account import serializers
 from account import permissions as accounts_permissions
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_text
+from django.db.models import Q
 from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route, list_route
 from account.tasks import disableCodeRecoveryPassword
@@ -47,7 +48,6 @@ class Login(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        band = True
         data = request.data
         username = data.get('username')
         password = data.get('password')
@@ -57,29 +57,27 @@ class Login(APIView):
 
         if not password:
             return Response({'message': 'The password dont be empty'}, status=STATUS['400'])
-        
-        if re.search('(\w+[.|\w])*@(\w+[.])*\w+', username):
-            try:
-                user = account_models.User.objects.get(email=username)
-            except account_models.User.DoesNotExist:
-                return Response({'message': 'the user not exist'}, status=STATUS['400'])
-            if not user.is_active:
-                return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
-            if not user.check_password(password):
-                band = False
-        else:
-            user = authenticate(username=username, password=password)
-        if not user:
-            try:
-                user_find = account_models.User.objects.get(username=username)
-            except account_models.User.DoesNotExist:
-                return Response({'message': 'the user not exist'}, status=STATUS['400'])
-            if not user_find.is_active:
-                return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
-            else:
-                band = False
-        if not band:
+
+        #if re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", username):
+        try:
+            user = account_models.User.objects.get(Q(username__iexact=username) | Q(email__iexact=username))
+        except account_models.User.DoesNotExist:
+            return Response({'message': 'the user not exist'}, status=STATUS['400'])
+        if not user.is_active:
+            return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
+        if not user.check_password(password):
             return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
+        #else:
+        #    user = authenticate(username=username, password=password)
+        #if not user:
+        #    try:
+        #        user_find = account_models.User.objects.get(username=username)
+        #    except account_models.User.DoesNotExist:
+        #        return Response({'message': 'the user not exist'}, status=STATUS['400'])
+        #    if not user_find.is_active:
+        #        return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
+        #    else:
+        #        band = False
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
         
