@@ -317,7 +317,7 @@ LOGGING = {
 }
 """
 #celery
-#CELERY_BROKER_URL = 'amqp://localhost'
+CELERY_BROKER_URL = 'amqp://localhost'
 #CELERY_BROKER_URL = 'redis://localhost:6379/0'
 #rediscloud
 #BROKER_URL = os.environ.get("REDISCLOUD_URL", "django://")
@@ -326,16 +326,15 @@ LOGGING = {
 #}
 #BROKER_POOL_LIMIT = None
 #rabbitmqcloud
-BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
-BROKER_POOL_LIMIT = 1
-BROKER_CONNECTION_MAX_RETRIES = None
+#BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
+#BROKER_POOL_LIMIT = 1
+#BROKER_CONNECTION_MAX_RETRIES = None
 #if BROKER_URL == "django://":
-#    INSTALLED_APPS += ("kombu.transport.django",)
+#    INSTALLED_APPS += ("kombu.transport.django",) this no work in heroku
+#CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 #CELERY_BROKER_URL = os.environ['REDIS_URL']
 #CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
-
 #CELERY_ACCEPT_CONTENT = ['application/json']
 #CELERY_TASK_SERIALIZER = 'json'
 #CELERY_RESULT_SERIALIZER = 'json'

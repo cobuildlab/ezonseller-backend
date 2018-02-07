@@ -20,8 +20,10 @@ from calendar import isleap
 from payment.pagination import paginate
 import paypalrestsdk
 from ezonseller import settings
+from payment import tasks
 import re
 from rest_framework.decorators import detail_route, list_route
+from notification import views as notify_views
 
 STATUS = {
     "200": status.HTTP_200_OK,
@@ -156,6 +158,7 @@ class PurchasePlanView(APIView):
         user.id_plan = plan.id
         user.save()
         plan_finish = extract_date(plan.duration)
+        numberpayment = payment.get('payment_id')
         payment = PaymentHistory.objects.create(
             user=user,
             id_plan=plan.id,
@@ -174,6 +177,12 @@ class PurchasePlanView(APIView):
             accept=True,
             automatic_payment=automatic 
         )
+        expire = plan_finish
+        tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
+        if notify_views.payment_notification(user,card,plan,numberpayment):
+            print("the email has been send")
+        else:
+            print("the email not sent") 
         serializer_data = serializers.PaymentHistorySerializer(payment, many=False)
         serializer = serializer_data.data
         serializer['message'] = 'the purchase of the plan has been successful'

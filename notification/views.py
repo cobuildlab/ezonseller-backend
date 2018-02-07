@@ -64,6 +64,51 @@ def activate_account(user, request):
     except:
         return False
 
+def planSubcriptionEnd(user,plan_title):
+    #try:
+    to = user.email
+    data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+            'url': settings.URL,
+            'username': user.username,
+            'plan_title': plan_title,
+            'msg': 'Plan Subcription'
+            }
+    subject, from_email = data['msg'], EMAIL_HOST_USER
+    text_content = render_to_string("email/plansubcription_end.html", data)
+    html_content = render_to_string("email/plansubcription_end.html", data)
+    send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                headers={'From': 'Ezonseller <'+from_email+'>',
+                                'Reply-to': 'Ezonseller <'+from_email+'>'})
+    send.attach_alternative(html_content, "text/html")
+    send.send()
+    return True
+    #except:
+    #    return False
+        
+
+def payment_notification(user, card, plan, numberPayment):
+    try:
+        to = user.email
+        data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+                'url': settings.URL,
+                'username': user.username,
+                'msg': 'Payment Confirmation',
+                'card': card,
+                'creditCard': card.number_card[-4:],
+                'plan': plan,
+                'numberPayment': numberPayment
+                }
+        subject, from_email = data['msg'], EMAIL_HOST_USER
+        text_content = render_to_string("email/payment_notification.html", data)
+        html_content = render_to_string("email/payment_notification.html", data)
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                    headers={'From': 'Ezonseller <'+from_email+'>',
+                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
+        send.attach_alternative(html_content, "text/html")
+        send.send()
+        return True
+    except:
+        return False
 
 def support_notify(user, request):
     try:
