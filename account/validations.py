@@ -90,6 +90,7 @@ class UserRecoverPasswordSerializers(serializers.ModelSerializer):
         if validated_data.get('password'):
             instance.password = make_password(validated_data.get('password'))
             instance.recovery = ''
+            instance.is_active = True
         instance.save()
         return instance
 

@@ -66,7 +66,19 @@ class Login(APIView):
         if not user.is_active:
             return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
         if not user.check_password(password):
-            return Response({'message': 'User or pass invalid'}, status=STATUS['400'])
+            print(user.failedAttempts)
+            user.failedAttempts = user.failedAttempts - 1
+            user.save()
+            if user.failedAttempts == 0:
+                if notify_views.accountSecurityBlock(user):
+                    print("email has been send")
+                    user.failedAttempts = 5
+                    user.is_active = False
+                    user.save()
+                    return Response({'message':'Your account is blocked, check your email to unlock the account'}, status=STATUS['400'])
+                else:
+                    return Response({'message':'the email cant not send'}, status=STATUS['500'])
+            return Response({'message': 'Invalid password, please enter the correct password'}, status=STATUS['400'])
         #else:
         #    user = authenticate(username=username, password=password)
         #if not user:
@@ -78,6 +90,8 @@ class Login(APIView):
         #        return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
         #    else:
         #        band = False
+        user.failedAttempts = 5
+        user.save()
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
         

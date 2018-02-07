@@ -15,6 +15,7 @@ class User(AbstractUser):
     recovery = models.CharField(max_length=40, blank=True)
     photo = models.ImageField(_('Photo'), max_length=255, blank=True, null=True)
     photo64 = models.TextField(_('Photo64'), default='', blank=False, null=False)
+    failedAttempts = models.IntegerField(default=5, blank=False, null=False)
     myPayPal = models.EmailField(_('Paypal_email'), blank=True, null=True)
     type_plan = models.CharField(_('Plan'), max_length=50, default='Free', blank=False, null=False)
     id_plan = models.IntegerField(default=0)
