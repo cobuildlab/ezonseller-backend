@@ -329,6 +329,11 @@ LOGGING = {
 BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
 BROKER_POOL_LIMIT = 1
 BROKER_CONNECTION_MAX_RETRIES = None
+BROKER_HEARTBEAT  = None # We're using TCP keep-alive instead
+RESULT_BACKEND  = None # AMQP is not recommended as result backend as it creates thousands of queues
+EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
+WORKER_PREFETCH_MULTIPLIER = 1 # Disable prefetching, it's causes problems and doesn't help performance
+WORKER_CONCURRENCY = 50 
 #if BROKER_URL == "django://":
 #    INSTALLED_APPS += ("kombu.transport.django",) this no work in heroku
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'

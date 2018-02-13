@@ -10,7 +10,10 @@ from notification import views as notify_views
 
 @shared_task
 def disablePlanSubcriptions(instance,payment):
-    user = account_models.User.objects.get(id=instance)
+    try:
+        user = account_models.User.objects.get(id=instance,id_plan=payment)    
+    except account_models.User.DoesNotExist:
+        return False
     user.type_plan = 'Free'
     user.id_plan = 0
     user.save()
