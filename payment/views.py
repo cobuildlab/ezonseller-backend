@@ -20,7 +20,7 @@ from calendar import isleap
 from payment.pagination import paginate
 import paypalrestsdk
 from ezonseller import settings
-from payment import tasks
+#from payment import tasks
 import re
 from rest_framework.decorators import detail_route, list_route
 from notification import views as notify_views
@@ -177,8 +177,8 @@ class PurchasePlanView(APIView):
             accept=True,
             automatic_payment=automatic 
         )
-        expire = plan_finish
-        tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
+        #expire = plan_finish
+        #tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
         if notify_views.payment_notification(user,card,plan,numberpayment):
             print("the email has been send")
         else:
