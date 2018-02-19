@@ -29,9 +29,9 @@ SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
 
 
 #paypal secret keys
-PAYPAL_MODE = 'sandbox' #or live
-PAYPAL_CLIENT_ID = 'AaDhiXEsCVKPEhU8I1o4f4z4m0PCKOuGQEyHxzHU9RaDZh_EaUn_3GOf-DhItHyxhtbx1wJKV__0wfAD'
-PAYPAL_CLIENT_SECRECT = 'ELjC06xXgQ-vvGRbnPPcjozF39dtbePq7rbSympvyyQdmHlSoOUmDtowXfbOq7QEZ98IL_ErmI24_EqL'
+PAYPAL_MODE = 'live' #or live
+PAYPAL_CLIENT_ID = 'ARhWn4xkBbWb4zdvgLzJ6orUnLtFT0tmbcVY3oINj898G-0Kx9-DVQ5xnukOeY6gi1gZbZ8O2ix2SnLH'
+PAYPAL_CLIENT_SECRECT = 'EM2izzlL_jpky7_6uKoZ2lD0SXdUNfK6zBmkfvYgiEB9x5MwOWFzc9FVrcR8P41aDEgDzsp8XKPNjkyd'
 URL = 'https://ezonsellerbackend.herokuapp.com'
 #URL = 'http://127.0.0.1:8000'
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -224,7 +224,8 @@ CORS_ORIGIN_WHITELIST = (
      'https://ezonseller.herokuapp.com/',
      'https://ezonsellerfrontend.herokuapp.com/',
      'ezonsellerfrontend.herokuapp.com',
-     'ezonseller.herokuapp.com'
+     'ezonseller.herokuapp.com',
+     'app.ezonseller.com'
      )
 CORS_ALLOW_METHODS = (
     'DELETE',
