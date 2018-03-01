@@ -1,3 +1,4 @@
+{% load staticfiles %} {% load static %}
 <!DOCTYPE html>
 <html>
 
@@ -5,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Support</title>
+    <title>Cancel subscription</title>
 </head>
 
 <body style="margin: 0;">
@@ -20,9 +21,9 @@
                     <tr>
                         <td style="background-color: #fff;text-align: center;">
                             <img src="{{url}}{% static 'img/logoEzonseller-curva.png' %}" style="width: 200px; margin-top: 20px;">
-                            <h2 style="text-align: center; color:#444444;">Support</h2>
-                            <h2 style="text-align: center; color:#444444;">Hi {{username}}</h2>
-                                    <p style="margin-left:40px; margin-right:40px; color:#444444; font-size: 19px;">Thank you for contacting us, we are reviewing your request please wait for our response. Ezonseller C.A<br><br></p>
+                            <h2 style="text-align: center; color:#444444;">Cancel Subscription</h2>
+                            <p style="margin-left:40px; margin-right:40px; color:#444444; font-size: 19px;">This user <b>{{username}}</b> has canceled his plan <b>{{plan}}</b> in ezonseller, please take the necessary measures.
+                                user email {{email}}<br><br></p>
 
                                     <a href="https://www.facebook.com/Ezonseller-1044158052402053/"><img src="{{url}}{% static 'img/fa.png' %}" style="width: 25px; margin-top: 20px;"></a>
                                     <a href="https://twitter.com/ezonseller"><img src="{{url}}{% static 'img/twit.png' %}" style="width: 25px;margin-top: 20px;margin-left: 10px;margin-right: 10px;"></a>

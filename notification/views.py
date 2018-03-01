@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.core.mail.message import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from ezonseller.settings import EMAIL_HOST_USER
+from ezonseller.settings import EMAIL_HOST_USER_SUPPORT
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
@@ -64,6 +65,30 @@ def activate_account(user, request):
     except:
         return False
 
+
+def cancel_subscription(user, plan):
+    try:
+        to = EMAIL_HOST_USER_SUPPORT
+        data = {
+                'url': settings.URL,
+                'username': user.username,
+                'email': user.email,
+                'plan': plan,
+                'msg': 'Cancel subscription',
+        }
+        subject, from_email = data['msg'], EMAIL_HOST_USER
+        text_content = render_to_string("email/cancel_subscrition.html", data)
+        html_content = render_to_string("email/cancel_subscrition.html", data)
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                    headers={'From': 'Ezonseller <'+from_email+'>',
+                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
+        send.attach_alternative(html_content, "text/html")
+        send.send()
+        return True
+    except:
+        return False
+
+
 def accountSecurityBlock(user):
     try:
         to = user.email
@@ -84,7 +109,8 @@ def accountSecurityBlock(user):
     except:
         return False
 
-def planSubcriptionEnd(user,plan_title):
+
+def planSubcriptionEnd(user, plan_title):
     #try:
     to = user.email
     data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
@@ -129,6 +155,7 @@ def payment_notification(user, card, plan, numberPayment):
         return True
     except:
         return False
+
 
 def support_notify(user, request):
     try:

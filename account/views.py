@@ -93,7 +93,7 @@ class Login(APIView):
         user.failedAttempts = 5
         user.save()
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'Token': token.key, 'id': user.id, 'last_login': user.last_login})
+        return Response({'Token': token.key, 'id': user.id, 'type_plan': user.type_plan, 'last_login': user.last_login})
         
 
 class Logout(APIView):

@@ -15,6 +15,7 @@ from product.models import AmazonAssociates, EbayAssociates, Country, CacheAmazo
 from product import validations
 from product.pagination import paginate
 from account.models import User
+from payment.models import PaymentHistory
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
 #from django.core.cache import cache
@@ -98,7 +99,7 @@ class SearchAmazonView(APIView):
             price = ''
             for text in item.get('features'):
                 description += text 
-            price=str(item.get('price_and_currency')[0]) +' '+str(item.get('price_and_currency')[1])
+            price = str(item.get('price_and_currency')[0]) +' '+str(item.get('price_and_currency')[1])
             created = CacheAmazonSearch.objects.create(
                 user=user,
                 title=item.get('title'),
@@ -130,7 +131,7 @@ class SearchAmazonView(APIView):
             return Response({'message': 'the category cant be empty'}, status=STATUS['400'])
 
         region_options = bottlenose.api.SERVICE_DOMAINS.keys()
-        list_region =list(region_options)
+        list_region = list(region_options)
         if not country in list_region:
             return Response({'message': 'the country you are sending is not assigned to your account'}, status=STATUS['400'])
         else:
@@ -147,15 +148,29 @@ class SearchAmazonView(APIView):
             return Response({'message': 'The category does not exits, please send a correct category'}, status=STATUS['400'])
         amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
         if request.user.type_plan == 'Free':
+            return Response(
+                {'message': 'You can not perform searches on Amazon, until you buy one of our plans in selection'},
+                status=STATUS['400'])
+        if request.user.type_plan == 'standard' or request.user.type_plan == 'Standard':
             if amazon_user.limit == 0:
+                user = request.user
                 amazon_user.date_end = datetime.datetime.now()
                 amazon_user.save()
+                payments = PaymentHistory.objects.filter(user=user, id_plan=user.id_plan).order_by('-id')[:1]
+                user.type_plan = 'Free'
+                user.id_plan = 0
+                user.save()
+                user_payment = payments[0]
+                user_payment.accept = False
+                user_payment.automatic_payment = False
+                user_payment.save()
                 #expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
                 #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
                 #cache.set('amazon-key', amazon_user.limit)
                 return Response(
-                    {'message': 'You have reached the limit of allowed searches,'
-                                'please purchase one plan of our selection, to continue performing searches'},
+                    {'message': 'You have reached the limit of allowed searches, '
+                                'the plan has been removed from your account,'
+                                'please purchase one plan of our selection, to continue performing searches,'},
                     status=STATUS['400'])
             else:
                 if offset == 0 or offset == "0":

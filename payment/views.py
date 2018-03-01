@@ -226,6 +226,10 @@ class CancelSubscriptionView(APIView):
             option=data.get('option'),
             reason=reason,
         )
+        if notify_views.cancel_subscription(user, plan.title):
+            print("the email has been send")
+        else:
+            print("the email not sent")
         return Response({'message': 'the cancel subscription of plan has been accept successfully'})
 
 
@@ -288,6 +292,14 @@ class PlanView(APIView):
         serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
         return Response(serializer.data)
 
+
+class PlanViewDetail(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, pk):
+        queryset = PlanSubscription.objects.get(id=pk)
+        serializer = serializers.PlanSubscriptionSerializers(queryset, many=False).data
+        return Response(serializer)
 
 class PaymentHistoryView(ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)

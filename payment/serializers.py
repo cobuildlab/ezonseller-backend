@@ -70,4 +70,12 @@ class PaymentHistorySerializer(serpy.Serializer):
     date_finish = serpy.Field()
 
     def get_user(self, obj):
-        return obj.user.username
+        data = {
+            'id': obj.user.id,
+            'username': obj.user.username,
+            'first_name': obj.user.first_name,
+            'last_name': obj.user.last_name,
+            'email': obj.user.email,
+            'type_plan': obj.user.type_plan,
+            }
+        return data
