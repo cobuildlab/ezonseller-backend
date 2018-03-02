@@ -181,7 +181,7 @@ class PurchasePlanView(APIView):
         AmazonAssociates.objects.filter(user=user).update(limit=20)
         #expire = plan_finish
         #tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
-        if notify_views.payment_notification(user,card,plan,numberpayment):
+        if notify_views.payment_notification(user, card, plan, numberpayment):
             print("the email has been send")
         else:
             print("the email not sent") 

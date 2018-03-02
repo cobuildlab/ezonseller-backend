@@ -151,7 +151,7 @@ class SearchAmazonView(APIView):
             return Response(
                 {'message': 'You can not perform searches on Amazon, until you buy one of our plans in selection'},
                 status=STATUS['400'])
-        if request.user.type_plan == 'standard' or request.user.type_plan == 'Standard':
+        if request.user.type_plan == 'standard' or request.user.type_plan == 'Standard' or request.user.type_plan == 'Plan Standard':
             if amazon_user.limit == 0:
                 user = request.user
                 amazon_user.date_end = datetime.datetime.now()
