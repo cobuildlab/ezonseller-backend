@@ -29,12 +29,12 @@ SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
 
 
 #paypal secret keys
-#PAYPAL_MODE = 'live' #or live
-#PAYPAL_CLIENT_ID = 'ARhWn4xkBbWb4zdvgLzJ6orUnLtFT0tmbcVY3oINj898G-0Kx9-DVQ5xnukOeY6gi1gZbZ8O2ix2SnLH'
-#PAYPAL_CLIENT_SECRECT = 'EM2izzlL_jpky7_6uKoZ2lD0SXdUNfK6zBmkfvYgiEB9x5MwOWFzc9FVrcR8P41aDEgDzsp8XKPNjkyd'
-PAYPAL_MODE = 'sandbox' #or live
-PAYPAL_CLIENT_ID = 'AaDhiXEsCVKPEhU8I1o4f4z4m0PCKOuGQEyHxzHU9RaDZh_EaUn_3GOf-DhItHyxhtbx1wJKV__0wfAD'
-PAYPAL_CLIENT_SECRECT = 'ELjC06xXgQ-vvGRbnPPcjozF39dtbePq7rbSympvyyQdmHlSoOUmDtowXfbOq7QEZ98IL_ErmI24_EqL'
+PAYPAL_MODE = 'live' #or live
+PAYPAL_CLIENT_ID = 'ARhWn4xkBbWb4zdvgLzJ6orUnLtFT0tmbcVY3oINj898G-0Kx9-DVQ5xnukOeY6gi1gZbZ8O2ix2SnLH'
+PAYPAL_CLIENT_SECRECT = 'EM2izzlL_jpky7_6uKoZ2lD0SXdUNfK6zBmkfvYgiEB9x5MwOWFzc9FVrcR8P41aDEgDzsp8XKPNjkyd'
+#PAYPAL_MODE = 'sandbox' #or live
+#PAYPAL_CLIENT_ID = 'AaDhiXEsCVKPEhU8I1o4f4z4m0PCKOuGQEyHxzHU9RaDZh_EaUn_3GOf-DhItHyxhtbx1wJKV__0wfAD'
+#PAYPAL_CLIENT_SECRECT = 'ELjC06xXgQ-vvGRbnPPcjozF39dtbePq7rbSympvyyQdmHlSoOUmDtowXfbOq7QEZ98IL_ErmI24_EqL'
 
 URL = 'https://ezonsellerbackend.herokuapp.com'
 #URL = 'http://127.0.0.1:8000'
@@ -47,7 +47,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com','ezonsellerbackend.herokuapp.com',
                  'localhost', '127.0.0.1:8000', '127.0.0.1', '127.0.0.1:8080',
-                 'ezonseller.herokuapp.com', '192.168.0.8',]
+                 'ezonseller.herokuapp.com', '192.168.0.9',]
 
 
 # Application definition
@@ -149,8 +149,9 @@ EMAIL_HOST_USER = 'no-reply@stcsolutions.com.ve'
 EMAIL_HOST_PASSWORD = 'v<.VY?GA$+2HK'
 EMAIL_PORT = 587
 
-#EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'
-EMAIL_HOST_USER_SUPPORT = 'carlos5_zeta@hotmail.com'
+EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'
+#EMAIL_HOST_USER_SUPPORT = 'carlos5_zeta@hotmail.com'
+
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
@@ -336,8 +337,8 @@ LOGGING = {
 BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
 BROKER_POOL_LIMIT = 1
 BROKER_CONNECTION_MAX_RETRIES = None
-BROKER_HEARTBEAT  = None # We're using TCP keep-alive instead
-RESULT_BACKEND  = None # AMQP is not recommended as result backend as it creates thousands of queues
+BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
+RESULT_BACKEND = None # AMQP is not recommended as result backend as it creates thousands of queues
 EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
 WORKER_PREFETCH_MULTIPLIER = 1 # Disable prefetching, it's causes problems and doesn't help performance
 WORKER_CONCURRENCY = 50 

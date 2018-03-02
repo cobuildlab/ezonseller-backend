@@ -11,6 +11,7 @@ from payment.pagination import PaymentHistoryPaginations
 from payment.models import PlanSubscription, PlanSubscriptionList, \
     TermsCondition, CreditCard, PaymentHistory, CancelSubscription, \
     CancelSubscriptionEdition, CancelSubscriptionList
+from product.models import AmazonAssociates
 from payment import serializers
 from payment import validations
 from account.models import User
@@ -177,6 +178,7 @@ class PurchasePlanView(APIView):
             accept=True,
             automatic_payment=automatic 
         )
+        AmazonAssociates.objects.filter(user=user).update(limit=20)
         #expire = plan_finish
         #tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
         if notify_views.payment_notification(user,card,plan,numberpayment):

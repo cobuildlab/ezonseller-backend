@@ -47,10 +47,13 @@ class CreditCardSerializers(serpy.Serializer):
     id = serpy.Field()
     first_name = serpy.Field()
     last_name = serpy.Field()
-    number_card = serpy.Field()
+    number_card = serpy.MethodField()
     cod_security = serpy.Field()
     month = serpy.MethodField()
     year = serpy.MethodField()
+
+    def get_number_card(self, obj):
+        return obj.number_card[-4:]
 
     def get_month(self, obj):
         month = str(obj.date_expiration)
