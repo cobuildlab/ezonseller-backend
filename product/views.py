@@ -167,11 +167,18 @@ class SearchAmazonView(APIView):
                 #expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
                 #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
                 #cache.set('amazon-key', amazon_user.limit)
-                return Response(
-                    {'message': 'You have reached the limit of allowed searches, '
-                                'the plan has been removed from your account,'
-                                'please purchase one plan of our selection, to continue performing searches,'},
-                    status=STATUS['400'])
+                data = {
+                    'id': user.id,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'email': user.email,
+                    'type_plan': user.type_plan,
+                    'message': 'You have reached the limit of allowed searches, '
+                               'the plan has been removed from your account,'
+                               'please purchase one plan of our selection, to continue performing searches,',
+                }
+                return Response(data, status=STATUS['400'])
             else:
                 if offset == 0 or offset == "0":
                     rest = amazon_user.limit - 1

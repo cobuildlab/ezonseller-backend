@@ -230,7 +230,16 @@ class CancelSubscriptionView(APIView):
             print("the email has been send")
         else:
             print("the email not sent")
-        return Response({'message': 'the cancel subscription of plan has been accept successfully'})
+        data = {
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'type_plan': user.type_plan,
+            'message': 'the cancel subscription of plan has been accept successfully',
+        }
+        return Response(data, status=STATUS['200'])
 
 
 class CreditCardViewSet(viewsets.ModelViewSet):
@@ -300,6 +309,7 @@ class PlanViewDetail(APIView):
         queryset = PlanSubscription.objects.get(id=pk)
         serializer = serializers.PlanSubscriptionSerializers(queryset, many=False).data
         return Response(serializer)
+
 
 class PaymentHistoryView(ListAPIView):
     permission_classes = (permissions.IsAuthenticated,)
