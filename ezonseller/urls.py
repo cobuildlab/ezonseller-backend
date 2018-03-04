@@ -50,6 +50,9 @@ urlpatterns = [
     path('product/ebay-search/', product_views.SearchEbayView.as_view()),
     path('product/amazon-search/', product_views.SearchAmazonView.as_view()),
     path('product/amazon-lastsearch/', product_views.LastSearchView.as_view()),
+    # SSL certification
+    # Path: http://app.ezonseller.com/.well-known/acme-challenge/QFnVMaHnHV0Y_5tn8gj3DlFEChrSQRGBQ76E1wtSlbY
+    path('.well-known/acme-challenge/QFnVMaHnHV0Y_5tn8gj3DlFEChrSQRGBQ76E1wtSlbY/', account_views.CertFileView.as_view()),
 ]
 from django.conf.urls.static import static, serve
 from ezonseller import settings

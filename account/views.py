@@ -6,11 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework import authentication, permissions
 from rest_framework.response import Response
+from django.template.loader import render_to_string
 from rest_framework import status
 from rest_framework import viewsets
 from django.contrib.auth import authenticate
 from account import models as account_models
-from notification import  models as notification_models
+from notification import models as notification_models
 from notification import views as notify_views
 from datetime import datetime
 from datetime import timedelta
@@ -29,7 +30,7 @@ import requests
 import json
 from ezonseller import settings
 
-#status-code-response
+# status-code-response
 STATUS = {
     "200": status.HTTP_200_OK,
     "201": status.HTTP_201_CREATED,
@@ -58,13 +59,14 @@ class Login(APIView):
         if not password:
             return Response({'message': 'The password dont be empty'}, status=STATUS['400'])
 
-        #if re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", username):
+        # if re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", username):
         try:
             user = account_models.User.objects.get(Q(username__iexact=username) | Q(email__iexact=username))
         except account_models.User.DoesNotExist:
             return Response({'message': 'the user not exist'}, status=STATUS['400'])
         if not user.is_active:
-            return Response({'message': 'Inactive user, confirm your account to gain access to the system'}, status=STATUS['401'])
+            return Response({'message': 'Inactive user, confirm your account to gain access to the system'},
+                            status=STATUS['401'])
         if not user.check_password(password):
             print(user.failedAttempts)
             user.failedAttempts = user.failedAttempts - 1
@@ -75,13 +77,14 @@ class Login(APIView):
                     user.failedAttempts = 5
                     user.is_active = False
                     user.save()
-                    return Response({'message':'Your account is blocked, check your email to unlock the account'}, status=STATUS['400'])
+                    return Response({'message': 'Your account is blocked, check your email to unlock the account'},
+                                    status=STATUS['400'])
                 else:
-                    return Response({'message':'the email cant not send'}, status=STATUS['500'])
+                    return Response({'message': 'the email cant not send'}, status=STATUS['500'])
             return Response({'message': 'Invalid password, please enter the correct password'}, status=STATUS['400'])
-        #else:
+        # else:
         #    user = authenticate(username=username, password=password)
-        #if not user:
+        # if not user:
         #    try:
         #        user_find = account_models.User.objects.get(username=username)
         #    except account_models.User.DoesNotExist:
@@ -94,7 +97,7 @@ class Login(APIView):
         user.save()
         token, created = Token.objects.get_or_create(user=user)
         return Response({'Token': token.key, 'id': user.id, 'type_plan': user.type_plan, 'last_login': user.last_login})
-        
+
 
 class Logout(APIView):
     """
@@ -167,8 +170,8 @@ class RequestRecoverPassword(APIView):
             disableCodeRecoveryPassword.apply_async(args=[user.id], eta=expire)
             return Response({'message': 'The email has been send'})
         return Response({'message': 'The email cannot be sent'}, status=STATUS['500'])
-    
-    
+
+
 class RecoverPasswordView(APIView):
     """
     """
@@ -181,11 +184,11 @@ class RecoverPasswordView(APIView):
 
         if not code:
             return Response({'message': 'You need to send the code'}, status=STATUS['400'])
-        
+
         if not password:
             return Response({'message': 'You need to send the password'}, status=STATUS['400'])
         try:
-            user = account_models.User.objects.get(recovery = str(code))
+            user = account_models.User.objects.get(recovery=str(code))
         except account_models.User.DoesNotExist:
             return Response({'message': 'Invalid code, please write the correct code'}, status=STATUS['400'])
         serializer = validations.UserRecoverPasswordSerializers(user, data=request.data, context={'request': request})
@@ -206,9 +209,9 @@ class ActivateAccountView(APIView):
         if not token:
             return Response({'message': 'the token is required, cant be empty'}, status=STATUS['400'])
         if not re.search("(b')", uidb):
-            return Response({'message': 'the uidb64 is incorrect'},status=STATUS['400'])
+            return Response({'message': 'the uidb64 is incorrect'}, status=STATUS['400'])
         decode = uidb.strip("b")
-        count = len(decode)-1
+        count = len(decode) - 1
         decode = decode[1:count]
         decode = str.encode(decode)
         uid = force_text(urlsafe_base64_decode(decode))
@@ -231,7 +234,7 @@ class ContacSupportView(APIView):
         user_data = request.user
         serializer = validations.ContactSupportValidations(data=request.data,
                                                            context={'request': request})
-        #serializer.is_valid(raise_exception=True)
+        # serializer.is_valid(raise_exception=True)
         if serializer.is_valid() is False:
             errors_msg = []
             errors_keys = list(serializer.errors.keys())
@@ -265,39 +268,41 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = validations.UserSerializers(instance, data=request.data, 
-        context={'request': request})
+        serializer = validations.UserSerializers(instance, data=request.data,
+                                                 context={'request': request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         response_data = serializer.data
         response_data['message'] = 'Your profile has been updated successfully'
         return Response(response_data)
 
-    @detail_route(methods=['post'], permission_classes=(permissions.IsAuthenticated,accounts_permissions.IsOwnerOrReadOnly))
+    @detail_route(methods=['post'],
+                  permission_classes=(permissions.IsAuthenticated, accounts_permissions.IsOwnerOrReadOnly))
     def uploadImage(self, request, pk=None):
         user = account_models.User.objects.get(username=request.user)
         if not request.data.get('photo'):
-             return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the image cant be empty'}, status=STATUS['400'])
         user.photo = request.data.get('photo')
         user.save()
-        image = open(settings.MEDIA_ROOT+'/'+str(user.photo), 'rb') #open binary file in read mode
+        image = open(settings.MEDIA_ROOT + '/' + str(user.photo), 'rb')  # open binary file in read mode
         image_read = image.read()
-        #image_64_encode = base64.encodebytes(image_read)
+        # image_64_encode = base64.encodebytes(image_read)
         image_64_encode = base64.b64encode(image_read).decode('ascii')
-        #image_64_encode = base64.b64encode(image_read)
+        # image_64_encode = base64.b64encode(image_read)
         print(image_64_encode)
         user.photo64 = image_64_encode
-        user.save()   
+        user.save()
         serializer_data = serializers.ProfileUserSerializers(user, many=False)
         serializer = serializer_data.data
-        serializer['message']= 'The profile image has been change successfully'
+        serializer['message'] = 'The profile image has been change successfully'
         return Response(serializer)
 
-    @detail_route(methods=['put'], permission_classes=(permissions.IsAuthenticated, accounts_permissions.IsOwnerOrReadOnly))
+    @detail_route(methods=['put'],
+                  permission_classes=(permissions.IsAuthenticated, accounts_permissions.IsOwnerOrReadOnly))
     def changePassword(self, request, pk=None):
         user = request.user
         serializer = validations.UserChangePasswordSerializers(user, data=request.data, context={'request': request})
-        #serializer.is_valid(raise_exception=True)
+        # serializer.is_valid(raise_exception=True)
         if serializer.is_valid() is False:
             errors_msg = []
             errors_keys = list(serializer.errors.keys())
@@ -311,3 +316,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response({'message': 'The password has been change successfully',
                          'token': token.key,
                          'id': request.user.id})
+
+
+class CertFileView(APIView):
+    """
+    View to provide cert validation
+    """
+
+    def get(self, request):
+        return Response(render_to_string('cert'), status=status.HTTP_200_OK)
