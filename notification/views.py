@@ -25,7 +25,7 @@ def recover_password(user, request):
         data = {'msg': 'Your new password',
                 'code': new_code,
                 'username': user.username,
-                'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+                'domain_fron': 'app.ezonseller.com',
                 'url': settings.URL,
                 }
         subject, from_email = data['msg'], EMAIL_HOST_USER
@@ -46,7 +46,7 @@ def recover_password(user, request):
 def activate_account(user, request):
     try:
         to = user.email
-        data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+        data = {'domain_fron': 'app.ezonseller.com',
                 'url': settings.URL,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
@@ -92,7 +92,7 @@ def cancel_subscription(user, plan):
 def accountSecurityBlock(user):
     try:
         to = user.email
-        data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+        data = {'domain_fron': 'app.ezonseller.com',
                 'url': settings.URL,
                 'username': user.username,
                 'msg': 'Account Security Block'
@@ -113,7 +113,7 @@ def accountSecurityBlock(user):
 def planSubcriptionEnd(user, plan_title):
     #try:
     to = user.email
-    data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+    data = {'domain_fron': 'app.ezonseller.com',
             'url': settings.URL,
             'username': user.username,
             'plan_title': plan_title,
@@ -135,7 +135,7 @@ def planSubcriptionEnd(user, plan_title):
 def payment_notification(user, card, plan, numberPayment):
     try:
         to = user.email
-        data = {'domain_fron': 'ezonsellerfrontend.herokuapp.com',
+        data = {'domain_fron': 'app.ezonseller.com',
                 'url': settings.URL,
                 'username': user.username,
                 'msg': 'Payment Confirmation',
