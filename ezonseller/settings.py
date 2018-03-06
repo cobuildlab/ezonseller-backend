@@ -295,8 +295,8 @@ AUTH_USER_MODEL = "account.User"
 
 #recaptcha
 RECAPTCHA_CAPTCHA_URL = "https://www.google.com/recaptcha/api/siteverify"
-RECAPTCHA_PUBLIC_KEY = '6LejRUMUAAAAAEmqctY7MvmGQ3_AAvKcuvYKBU0x'
-RECAPTCHA_PRIVATE_KEY = '6LejRUMUAAAAANzCyOu8_DAc-Rl7BpXRCfKxyvek'
+RECAPTCHA_PUBLIC_KEY = '6LcX-0oUAAAAAPd2e5t_txQsSZcWrOr6CpLsAr1o'
+RECAPTCHA_PRIVATE_KEY = '6LcX-0oUAAAAAHlyVtcdjvJ7qzMfxfHIlGmJmgjI'
 
 
 """

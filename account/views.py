@@ -128,18 +128,15 @@ class RegisterView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        """
         if not request.data.get('callback'):
             return Response({"message": "reCAPTCHA field cant not be empty"}, status=STATUS['400'])
         recaptcha_response = request.data['callback']
-
         r = requests.post(settings.RECAPTCHA_CAPTCHA_URL, {
             'secret': settings.RECAPTCHA_PRIVATE_KEY,
             'response': recaptcha_response
         })
         if not json.loads(r.content.decode())['success']:
             return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=STATUS['400'])
-        """
         user_serializer = validations.UserCreateSerializers(data=request.data)
         if user_serializer.is_valid() is False:
             errors_msg = []
