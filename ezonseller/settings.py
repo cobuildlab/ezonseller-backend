@@ -145,8 +145,8 @@ DATABASES['default'].update(db_from_env)
 #Email-AppProjecturation
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'no-reply@stcsolutions.com.ve'
-EMAIL_HOST_PASSWORD = 'v<.VY?GA$+2HK'
+EMAIL_HOST_USER = 'ezonseller@gmail.com'
+EMAIL_HOST_PASSWORD = 'marshalls50'
 EMAIL_PORT = 587
 
 EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'
