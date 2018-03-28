@@ -19,6 +19,7 @@ class User(AbstractUser):
     myPayPal = models.EmailField(_('Paypal_email'), blank=True, null=True)
     type_plan = models.CharField(_('Plan'), max_length=50, default='Free', blank=False, null=False)
     id_plan = models.IntegerField(default=0)
+    customer_id = models.CharField(_('Customer'), max_length=50, blank=True, null= True)
 
     def __str__(self):
         return self.username

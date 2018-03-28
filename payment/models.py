@@ -108,6 +108,7 @@ class CreditCard(models.Model):
     number_card = models.CharField(_('Number_Card'), max_length=20, null=False)
     cod_security = models.CharField(_('Code_Security'), max_length=4, null=False)
     date_expiration = models.DateField(null=False)
+    card_id = models.CharField(_('Card_id'), max_length=50, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
 

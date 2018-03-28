@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
-
+STRIPE_SECRET_API_KEY ='sk_live_hyvLhaFuhjA2cRnjv2xFCutE'
 
 #paypal secret keys
 PAYPAL_MODE = 'live' #or live
@@ -145,8 +145,8 @@ DATABASES['default'].update(db_from_env)
 #Email-AppProjecturation
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'ezonseller@gmail.com'
-EMAIL_HOST_PASSWORD = 'marshalls50'
+EMAIL_HOST_USER = 'no-reply@stcsolutions.com.ve'
+EMAIL_HOST_PASSWORD = 'v<.VY?GA$+2HK'
 EMAIL_PORT = 587
 
 EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'

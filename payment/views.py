@@ -25,6 +25,8 @@ from ezonseller import settings
 import re
 from rest_framework.decorators import detail_route, list_route
 from notification import views as notify_views
+import stripe
+import math
 
 STATUS = {
     "200": status.HTTP_200_OK,
@@ -74,8 +76,9 @@ class TermsConditionView(APIView):
 
 class PurchasePlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-
-    def paymentPlan(self, plan, card):
+    
+    """
+    def paymentPlanPaypal(self, plan, card):
         mounth = str(card.date_expiration)
         year = mounth
         paypalrestsdk.configure({
@@ -118,12 +121,57 @@ class PurchasePlanView(APIView):
             print(payment.error)
             return None
         return None
+    """
+    def paymentPlanStripe(self, plan: PlanSubscription, card: CreditCard, user: User):
+        stripe.api_key = settings.STRIPE_SECRET_API_KEY
+        
+        try:
+            charge = stripe.Charge.create(
+                amount=math.ceil(int(str(plan.cost).replace(".",''))),  # amount in cents
+                currency="usd",
+                customer=user.customer_id,
+                card=card.card_id,
+                description=plan.description
+            )
+            return {'payment_id': charge.get('id')}
+        except stripe.error.CardError as e:
+            # Since it's a decline, stripe.error.CardError will be caught
+            body = e.json_body
+            err  = body['error']
+            print("Status is: %s" % e.http_status)
+            print("Type is: %s" % err['type'])
+            print("Code is: %s" % err['code'])
+            # param is '' in this case
+            print("Param is: %s" % err['param'])
+            print("Message is: %s" % err['message'])
+            return None
+        except stripe.error.RateLimitError as e:
+        # Too many requests made to the API too quickly
+            pass
+        except stripe.error.InvalidRequestError as e:
+        # Invalid parameters were supplied to Stripe's API
+            pass
+        except stripe.error.AuthenticationError as e:
+        # Authentication with Stripe's API failed
+        # (maybe you changed API keys recently)
+            pass
+        except stripe.error.APIConnectionError as e:
+        # Network communication with Stripe failed
+            pass
+        except stripe.error.StripeError as e:
+        # Display a very generic error to the user, and maybe send
+        # yourself an email
+            pass
+        except Exception as e:
+            return None
+        return None
 
     def post(self, request):
         plan_id = request.data.get('id_plan')
         card_id = request.data.get('id_card')
         accept = request.data.get('accept')
         automatic = request.data.get('automatic')
+        user = request.user
         if not plan_id:
             return Response({'message': 'the plan id cant be empty'}, status=STATUS['400'])
         if not card_id:
@@ -148,13 +196,14 @@ class PurchasePlanView(APIView):
                 {'message': 'the credit card with you buy this plan dont belong a your account, or not exist'},
                 status=STATUS['400']
             )
-
-        payment = self.paymentPlan(plan, card)
+        if user.type_plan == "Free" or user.type_plan == "free":
+            payment = self.paymentPlanStripe(plan,card,user)
+        else:
+            return Response({"message":"You already have an active plan and your account"}, 
+                            status=STATUS['400'])
         if not payment:
             return Response({'message': 'payment could not be made, please notify your bank distributor'},
                             status=STATUS['400'])
-
-        user = User.objects.get(username=request.user)
         user.type_plan = plan.title
         user.id_plan = plan.id
         user.save()
@@ -254,6 +303,48 @@ class CreditCardViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def stripe_costumer_card(self, card_id: int, user: User):
+        stripe.api_key = settings.STRIPE_SECRET_API_KEY
+        card = CreditCard.objects.get(id=card_id)
+        if not card.card_id:
+            try:
+                token = stripe.Token.create(
+                    card={
+                        "number": card.number_card,
+                        "exp_month": int(str(card.date_expiration)[5:7]),
+                        "exp_year": int(str(card.date_expiration)[0:4]),
+                        "cvc": card.cod_security
+                    },
+                )
+                card.card_id = token.get('card').get('id')
+                card.save()
+            except stripe.error.CardError as e:
+                # Since it's a decline, stripe.error.CardError will be caught
+                body = e.json_body
+                err  = body['error']
+                print("Status is: %s" % e.http_status)
+                print("Type is: %s" % err['type'])
+                print("Code is: %s" % err['code'])
+                # param is '' in this case
+                print("Param is: %s" % err['param'])
+                print("Message is: %s" % err['message'])
+                return False
+            if not user.customer_id:
+                costumer = stripe.Customer.create(
+                    description="Customer for "+ user.first_name + user.last_name,
+                    email=user.email,
+                    source=token.get('id')
+                )
+                user.customer_id = costumer.get('id')
+                user.save()
+                return True
+            else:
+                print("entro")
+                costumer = stripe.Customer.retrieve(user.customer_id)
+                costumer.sources.create(source=token.get('id'))
+                return True
+        return False
+
     def create(self, request, *args, **kwargs):
         context = {'request': request}
         serializer_data = validations.CreditCardCreateValidations(data=request.data,
@@ -268,6 +359,12 @@ class CreditCardViewSet(viewsets.ModelViewSet):
             return Response({'message': errors_msg[0]}, status=STATUS['400'])
         self.perform_create(serializer_data)
         serializer = serializer_data.data
+        stripe_card = self.stripe_costumer_card(serializer.get('id'),request.user)
+        if not stripe_card:
+            card = CreditCard.objects.get(id=serializer.get('id'))
+            card.delete()
+            return Response({"message":"cant not save the credit card please contact your bank"}, 
+                            status=STATUS['400'])
         serializer['message'] = 'the credit card has been saved successfully'
         return Response(serializer, status=STATUS['201'])
 
