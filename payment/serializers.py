@@ -15,7 +15,7 @@ class PlanSubscriptionSerializers(serpy.Serializer):
 
     def get_image(self, obj):
         if not obj.image:
-            return(str(obj.image))
+            return ""
         return(URL+MEDIA_URL+str(obj.image))
 
     def get_list(self, obj):

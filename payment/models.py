@@ -1,14 +1,14 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-FIRST_DURATION = '1 mounth'
-SECOND_DURATION = '3 mounth'
-THIRD_DURATION = '6 mounth'
+FIRST_DURATION = '1 month'
+SECOND_DURATION = '3 month'
+THIRD_DURATION = '6 month'
 FOURTH_DURATION = '1 year'
 FIFTH_DURATION = '2 year'
 SIX_DURATION = '3 year'
 PLAN_DURATION = (
-    (FIRST_DURATION, _('1 mounth')),
+    (FIRST_DURATION, _('1 month')),
     #(SECOND_DURATION, _('3 mounth')),
     #(THIRD_DURATION, _('6 mounth')),
     (FOURTH_DURATION, _('1 year')),

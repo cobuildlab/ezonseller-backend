@@ -26,7 +26,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
-STRIPE_SECRET_API_KEY ='sk_live_hyvLhaFuhjA2cRnjv2xFCutE'
+STRIPE_SECRET_API_KEY = 'sk_live_hyvLhaFuhjA2cRnjv2xFCutE'
+#STRIPE_SECRET_API_KEY = 'sk_test_9keGS7T6pyiB4tiarUdI7znF'
 
 #paypal secret keys
 PAYPAL_MODE = 'live' #or live

@@ -56,7 +56,7 @@ def extract_date(date):
     mounths = {'1': 5, '3': 15, '6': 30}
     years = {'1': 1, '2': 2, '3': 3}
     now = datetime.now()
-    if string == 'mounth':
+    if string == 'month':
         mount = mounths[number]
         endDate = now + timedelta(6*mount)
     if string == 'year':
