@@ -20,6 +20,9 @@ import logging
 from django.contrib.postgres.aggregates import ArrayAgg
 #from django.core.cache import cache
 import datetime
+#from urllib3.exceptions import HTTPError
+from urllib.error import HTTPError
+import time
 #from django.core.cache import caches
 #from product.tasks import verifyStatusAmazonAccount
 log = logging.getLogger('product.views')
@@ -86,7 +89,6 @@ class LastSearchView(APIView):
         serializer = serializers.AmazonProductSerializers(queryset, many=True)
         return Response(serializer.data)
 
-
 class SearchAmazonView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -112,6 +114,20 @@ class SearchAmazonView(APIView):
                 features=description,)
             break
         return True
+
+    def list_products_amazon(self, amazon_api, keywords, searchIndex):
+        products = amazon_api.search(Keywords=keywords, SearchIndex=searchIndex)
+        try:
+            list_products = []
+            for product in products:
+                list_products.append(product)
+            return list_products
+        except amazon.api.SearchException:
+            return None        
+        except HTTPError as err:
+            time.sleep(5)
+            print("Waiting a few seconds...", err)
+            return self.list_products_amazon(amazon_api, keywords, searchIndex)
 
     def get(self, request):
         keyword = request.GET.get('keyword')
@@ -184,24 +200,19 @@ class SearchAmazonView(APIView):
                     rest = amazon_user.limit - 1
                     amazon_user.limit = rest
                     amazon_user.save()
-        #try:
+
         amazon_api = AmazonAPI(amazon_user.access_key_id,
                                amazon_user.secrect_access_key,
                                amazon_user.associate_tag,
-                               region=country)
-        #except:
-        #    return Response({'message': 'connection error'}, status=STATUS['500'])
-        products = amazon_api.search(Keywords=keyword, SearchIndex=category)
-        try:
-            list_products = [product for product in products]
-            count = len(list_products)
-        except amazon.api.SearchException:
+                               region=country,MaxQPS=0.9)
+        list_products = self.list_products_amazon(amazon_api,keyword,category)
+        if not list_products:
             return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['400'])
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
         serializer = serializer_data.data
         self.saveProductSearch(serializer, request.user)
-        serializer.append({'total_items': count})
+        serializer.append({'total_items': len(list_products)})
         return Response(serializer)
 
 
