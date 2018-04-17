@@ -1,23 +1,24 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-FIRST_DURATION = '1 month'
-SECOND_DURATION = '3 month'
-THIRD_DURATION = '6 month'
-FOURTH_DURATION = '1 year'
-FIFTH_DURATION = '2 year'
-SIX_DURATION = '3 year'
-PLAN_DURATION = (
-    (FIRST_DURATION, _('1 month')),
-    #(SECOND_DURATION, _('3 mounth')),
-    #(THIRD_DURATION, _('6 mounth')),
-    (FOURTH_DURATION, _('1 year')),
-    #(FIFTH_DURATION, _('2 year')),
-    #(SIX_DURATION, _('3 year')),
-    )
-
 
 class PlanSubscription(models.Model):
+
+    FIRST_DURATION = '1 month'
+    SECOND_DURATION = '3 month'
+    THIRD_DURATION = '6 month'
+    FOURTH_DURATION = '1 year'
+    FIFTH_DURATION = '2 year'
+    SIX_DURATION = '3 year'
+    PLAN_DURATION = (
+        (FIRST_DURATION, _('1 month')),
+        # (SECOND_DURATION, _('3 mounth')),
+        # (THIRD_DURATION, _('6 mounth')),
+        (FOURTH_DURATION, _('1 year')),
+        # (FIFTH_DURATION, _('2 year')),
+        # (SIX_DURATION, _('3 year')),
+    )
+
     title = models.CharField(_('Title'), max_length=100, blank=False, null=False)
     list = models.ManyToManyField('PlanSubscriptionList', verbose_name=_('PlanSubscriptionLists'), blank=True)
     type_plan = models.CharField(_('Type_plan'), max_length=20, null=False)
@@ -26,6 +27,9 @@ class PlanSubscription(models.Model):
     description = models.TextField(_('Description'), null=False)
     duration = models.CharField(_('Duration'), choices=PLAN_DURATION, default=FIRST_DURATION, max_length=50, blank=True, null=True)
     terms = models.TextField(_('TermsCondition'), null=False)
+    automatic_payment = models.BooleanField(_('Automatic'), default=False, help_text=_('Accept the automatic payment?'))
+    unlimited_search = models.BooleanField(_('Unlimited Search'), default=False, help_text=_('Accept unlimited searches?'))
+    number_search = models.IntegerField(_('Number of search'), default=0, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
 
@@ -85,22 +89,22 @@ class TermsCondition(models.Model):
         return self.description
 
 
-CARD_VISA = "visa"
-CARD_MASTER = "mastercard"
-CARD_AMERICAN = "americanexpress"
-CARD_MAESTRO = "maestro"
-CARD_DISCOVER = "discover"
-
-TYPE_CARD = (
-    (CARD_VISA, _("Visa")),
-    (CARD_MASTER, _("MasterCard")),
-    (CARD_AMERICAN, _("AmericanExpress")),
-    (CARD_MAESTRO, _("Maestro")),
-    (CARD_DISCOVER, _("Discover")),
-)
-
-
 class CreditCard(models.Model):
+
+    CARD_VISA = "visa"
+    CARD_MASTER = "mastercard"
+    CARD_AMERICAN = "americanexpress"
+    CARD_MAESTRO = "maestro"
+    CARD_DISCOVER = "discover"
+
+    TYPE_CARD = (
+        (CARD_VISA, _("Visa")),
+        (CARD_MASTER, _("MasterCard")),
+        (CARD_AMERICAN, _("AmericanExpress")),
+        (CARD_MAESTRO, _("Maestro")),
+        (CARD_DISCOVER, _("Discover")),
+    )
+
     user = models.ForeignKey('account.User', related_name='card_user', on_delete=models.CASCADE, blank=True, null=True)
     first_name = models.CharField(_('First_name'), max_length=50, blank=True, null=False)
     last_name = models.CharField(_('Last_name'), max_length=50, blank=True, null=False)
@@ -137,6 +141,8 @@ class PaymentHistory(models.Model):
     date_finish = models.DateTimeField(null=False)
     accept = models.BooleanField(_('Accept'), default=False, help_text=_('Accept the plan?'))
     automatic_payment = models.BooleanField(_('Automatic'), default=False, help_text=_('Accept the automatic payment?'))
+    unlimited_search = models.BooleanField(_('Unlimited Search'), default=False, help_text=_('Accept unlimited searches?'))
+    number_search = models.IntegerField(_('Number of search'), default=0, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
 

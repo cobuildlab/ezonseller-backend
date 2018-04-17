@@ -3,8 +3,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Country(models.Model):
-    name = models.CharField(_('Country_name'),max_length=60, null=False)
-    code = models.CharField(_('Code'),max_length=3, blank=True, null=False)
+    name = models.CharField(_('Country_name'), max_length=60, null=False)
+    code = models.CharField(_('Code'), max_length=3, blank=True, null=False)
 
     class Meta:
         ordering = ['name']
@@ -31,7 +31,6 @@ class AmazonAssociates(models.Model):
     associate_tag = models.CharField(max_length=50, null=True, blank=True)
     access_key_id = models.CharField(max_length=100, null=True, blank=True)
     secrect_access_key = models.CharField(max_length=100, null=True, blank=True)
-    limit = models.IntegerField(default=20)
     date_end = models.DateTimeField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)

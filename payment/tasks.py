@@ -33,8 +33,9 @@ from django.contrib.postgres.aggregates import ArrayAgg
 # def disablePlanSubcriptions():
 #     return True
 
-@periodic_task(run_every=crontab(minute=0, hour=12),name="disablePlanSubcriptions",ignore_result=True)
-def disablePlanSubcriptions():
+
+@periodic_task(run_every=crontab(minute=0, hour=12), name="disable_plan_subscriptions", ignore_result=True)
+def disable_plan_subscriptions():
     datenow = timezone.now() 
     users = account_models.User.objects.all().exclude(type_plan="Free")
     users = users.aggregate(userid=ArrayAgg('id')) 
@@ -48,7 +49,7 @@ def disablePlanSubcriptions():
             payment.accept = False
             payment.automatic_payment = False
             payment.save()
-            if notify_views.planSubcriptionEnd(user,payment.title):
+            if notify_views.planSubcriptionEnd(user, payment.title):
                 print("email send")
             else:
                 print("email problems")

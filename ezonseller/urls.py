@@ -36,7 +36,7 @@ urlpatterns = [
     path('accounts/register/', account_views.RegisterView.as_view()),
     path('accounts/recoverypassword/', account_views.RequestRecoverPassword.as_view()),
     path('accounts/changepassword/', account_views.RecoverPasswordView.as_view()),
-    path('accounts/contact/', account_views.ContacSupportView.as_view()),
+    path('accounts/contact/', account_views.ContactSupportView.as_view()),
     path('', include(router.urls)),
     path('terms', payment_views.TermsConditionView.as_view()),
     path('payment/plans/', payment_views.PlanView.as_view()),

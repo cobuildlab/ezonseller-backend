@@ -31,12 +31,12 @@ class ProfileUserSerializers(serpy.Serializer):
         arrpayments = []
         payments = PaymentHistory.objects.filter(user=obj).order_by('-id')
         for payment in payments:
-            if payment.accept == False:
+            if not payment.accept:
                 return arrpayments
-            if payment.image != None:
-                image = URL+MEDIA_URL+str(payment.image)
-            else:
+            if not payment.image:
                 image = ''
+            else:
+                image = URL+MEDIA_URL+str(payment.image)
             data = {
                 'id': payment.id,
                 'title': payment.title,

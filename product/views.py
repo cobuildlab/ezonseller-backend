@@ -15,29 +15,13 @@ from product.models import AmazonAssociates, EbayAssociates, Country, CacheAmazo
 from product import validations
 from product.pagination import paginate
 from account.models import User
-from payment.models import PaymentHistory
+from payment.models import PaymentHistory, PlanSubscription
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
-#from django.core.cache import cache
 import datetime
-#from urllib3.exceptions import HTTPError
 from urllib.error import HTTPError
 import time
-#from django.core.cache import caches
-#from product.tasks import verifyStatusAmazonAccount
 log = logging.getLogger('product.views')
-
-#status-code-response
-STATUS = {
-    "200": status.HTTP_200_OK,
-    "201": status.HTTP_201_CREATED,
-    "202": status.HTTP_202_ACCEPTED,
-    "204": status.HTTP_204_NO_CONTENT,
-    "400": status.HTTP_400_BAD_REQUEST,
-    "401": status.HTTP_401_UNAUTHORIZED,
-    "404": status.HTTP_404_NOT_FOUND,
-    "500": status.HTTP_500_INTERNAL_SERVER_ERROR
-}
 
 
 def category_bool(data):
@@ -61,9 +45,9 @@ class CountryListView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
-       queryset = Country.objects.all()
-       serializer = validations.CountrySerializers(queryset, many=True)
-       return Response(serializer.data)
+        queryset = Country.objects.all()
+        serializer = validations.CountrySerializers(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CountryView(APIView):
@@ -73,12 +57,12 @@ class CountryView(APIView):
         user = User.objects.get(username=request.user)
         amazon = AmazonAssociates.objects.filter(user=user)
         if len(amazon) == 0:
-            return Response([], status=STATUS['200'])
+            return Response([], status=status.HTTP_200_OK)
         aux = amazon.aggregate(arr=ArrayAgg('country'))
         country_id = aux.get('arr')
         queryset = Country.objects.filter(id__in=country_id)
         serializer = serializers.CountrySerializers(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LastSearchView(APIView):
@@ -87,18 +71,18 @@ class LastSearchView(APIView):
     def get(self, request):
         queryset = CacheAmazonSearch.objects.filter(user=request.user).order_by('-id')
         serializer = serializers.AmazonProductSerializers(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class SearchAmazonView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
-    def saveProductSearch(self, obj, user):
+    def save_product_search(self, obj, user):
         product = CacheAmazonSearch.objects.filter(user=user).order_by('id')
         if len(product) == 12:
             product[0].delete()
         for item in obj:
             description = ''
-            price = ''
             for text in item.get('features'):
                 description += text 
             price = str(item.get('price_and_currency')[0]) +' '+str(item.get('price_and_currency')[1])
@@ -111,7 +95,8 @@ class SearchAmazonView(APIView):
                 detail_page_url=item.get('detail_page_url'),
                 price_and_currency=price,
                 offer_url=item.get('offer_url'),
-                features=description,)
+                features=description,
+            )
             break
         return True
 
@@ -136,53 +121,48 @@ class SearchAmazonView(APIView):
         limit = request.GET.get('limit', None)
         offset = request.GET.get('offset', None)
         if not limit:
-            return Response({'message': 'the limit is required, cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the limit is required, cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not offset:
-            return Response({'message': 'the offset is required, cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the offset is required, cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not keyword:
-            return Response({'message': 'the title cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the title cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not country:
-            return Response({'message': 'the country cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the country cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not category:
-            return Response({'message': 'the category cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the category cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
 
         region_options = bottlenose.api.SERVICE_DOMAINS.keys()
         list_region = list(region_options)
         if not country in list_region:
-            return Response({'message': 'the country you are sending is not assigned to your account'}, status=STATUS['400'])
+            return Response({'message': 'the country you are sending is not assigned to your account'},
+                            status=status.HTTP_400_BAD_REQUEST)
         else:
             try:
                 country_id = Country.objects.get(code=country)
             except Country.DoesNotExist:
-                return Response({'message': 'the country does not exist'}, status=STATUS['400'])
+                return Response({'message': 'the country does not exist'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            amazon_filter = AmazonAssociates.objects.get(user=request.user, country=country_id)
+            amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
         except AmazonAssociates.DoesNotExist:
-            return Response({'message': 'You has not amazon associate assigned to your account'}, status=STATUS['400'])
-
+            return Response({'message': 'You has not amazon associate assigned to your account'},
+                            status=status.HTTP_400_BAD_REQUEST)
         if not category_bool(category):
-            return Response({'message': 'The category does not exits, please send a correct category'}, status=STATUS['400'])
-        amazon_user = AmazonAssociates.objects.get(user=request.user, country=country_id)
+            return Response({'message': 'The category does not exits, please send a correct category'},
+                            status=status.HTTP_400_BAD_REQUEST)
         if request.user.type_plan == 'Free':
             return Response(
                 {'message': 'You can not perform searches on Amazon, until you buy one of our plans in selection'},
-                status=STATUS['400'])
-        if request.user.type_plan == 'standard' or request.user.type_plan == 'Standard' or request.user.type_plan == 'Plan Standard':
-            if amazon_user.limit == 0:
+                status=status.HTTP_400_BAD_REQUEST)
+        plan_history = PaymentHistory.objects.get(id_plan=request.user.id_plan, title=request.user.type_plan)
+        if not plan_history.unlimited_search:
+            if plan_history.number_search == 0:
                 user = request.user
-                amazon_user.date_end = datetime.datetime.now()
-                amazon_user.save()
-                payments = PaymentHistory.objects.filter(user=user, id_plan=user.id_plan).order_by('-id')[:1]
                 user.type_plan = 'Free'
                 user.id_plan = 0
                 user.save()
-                user_payment = payments[0]
-                user_payment.accept = False
-                user_payment.automatic_payment = False
-                user_payment.save()
-                #expire = datetime.datetime.now() + datetime.timedelta(minutes=1440)
-                #verifyStatusAmazonAccount.apply_async(args=[request.user, country_id], eta=expire)
-                #cache.set('amazon-key', amazon_user.limit)
+                plan_history.accept = False
+                plan_history.automatic_payment = False
+                plan_history.save()
                 data = {
                     'id': user.id,
                     'username': user.username,
@@ -194,26 +174,26 @@ class SearchAmazonView(APIView):
                                'the plan has been removed from your account,'
                                'please purchase one plan of our selection, to continue performing searches,',
                 }
-                return Response(data, status=STATUS['400'])
+                return Response(data, status=status.HTTP_200_OK)
             else:
                 if offset == 0 or offset == "0":
-                    rest = amazon_user.limit - 1
-                    amazon_user.limit = rest
-                    amazon_user.save()
-
+                    rest = plan_history.number_search - 1
+                    plan_history.number_search = rest
+                    plan_history.save()
         amazon_api = AmazonAPI(amazon_user.access_key_id,
                                amazon_user.secrect_access_key,
                                amazon_user.associate_tag,
-                               region=country,MaxQPS=0.9)
-        list_products = self.list_products_amazon(amazon_api,keyword,category)
+                               region=country, MaxQPS=0.9)
+        list_products = self.list_products_amazon(amazon_api, keyword, category)
         if not list_products:
-            return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['400'])
+            return Response({'message': 'no results were found for the product you are looking for'},
+                            status=status.HTTP_400_BAD_REQUEST)
         list_paginated = paginate(qs=list_products, limit=limit, offset=offset)
         serializer_data = serializers.AmazonProductSerializers(list_paginated, many=True)
         serializer = serializer_data.data
-        self.saveProductSearch(serializer, request.user)
+        self.save_product_search(serializer, request.user)
         serializer.append({'total_items': len(list_products)})
-        return Response(serializer)
+        return Response(serializer, status=status.HTTP_200_OK)
 
 
 class SearchEbayView(APIView):
@@ -221,32 +201,38 @@ class SearchEbayView(APIView):
 
     def get(self, request):
         user = request.user
-        country_id = {'DE':'EBAY-DE','CA':'EBAY-ENCA','ES':'EBAY-ES','FR':'EBAY-FR',
-        'UK':'EBAY-GB','CN':'EBAY-HK','IN':'EBAY-IN','IT':'EBAY-IT','US':'EBAY-US'}
+        country_id = {'DE': 'EBAY-DE', 'CA': 'EBAY-ENCA', 'ES': 'EBAY-ES', 'FR': 'EBAY-FR',
+                      'UK': 'EBAY-GB', 'CN': 'EBAY-HK', 'IN': 'EBAY-IN', 'IT': 'EBAY-IT', 'US': 'EBAY-US'}
         keyword = request.GET.get('keyword')
         country = request.GET.get('country')
         limit = request.GET.get('limit', None)
         offset = request.GET.get('offset', None)
+        if user.type_plan == "free" or user.type_plan == "Free":
+            return Response({'message': 'You can not search for products on eBay because you do '
+                                        'not have an active plan in your account'}, status=status.HTTP_400_BAD_REQUEST)
         if not limit:
-            return Response({'message': 'The limit is required, cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'The limit is required, cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not offset:
-            return Response({'message': 'The offset is required, cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'The offset is required, cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not keyword:
-            return Response({'message': 'The keyword cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'The keyword cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not country:
-            return Response({'message':'The country cant be empty'}, status=STATUS['400'])
-        if country_id.get(country) == None:
-            return Response({'message':'The country you send does not exist in global ebay api'}, status=STATUS['400'])
+            return Response({'message': 'The country cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
+        if not country_id.get(country):
+            return Response({'message': 'The country you send does not exist in global ebay api'},
+                            status=status.HTTP_400_BAD_REQUEST)
         try:
             ebay_user = EbayAssociates.objects.get(user=user)
         except EbayAssociates.DoesNotExist:
-            return Response({'message': 'you do not have an ebay account associated to perform the search'}, status=STATUS['400'])
+            return Response({'message': 'you do not have an ebay account associated to perform the search'},
+                            status=status.HTTP_400_BAD_REQUEST)
         try:
             ebay_api = Finding(siteid=country_id.get(country), appid=ebay_user.client_id, config_file=None)
             response = ebay_api.execute('findItemsAdvanced', {'keywords': keyword})
             elements = response.dict()
             if elements.get('searchResult').get('_count') == '0':
-                return Response({'message': 'no results were found for the product you are looking for'}, status=STATUS['400'])
+                return Response({'message': 'no results were found for the product you are looking for'},
+                                status=status.HTTP_400_BAD_REQUEST)
             items = response.reply.searchResult.item
             count = len(items)
             list_products = [item for item in items]
@@ -254,11 +240,10 @@ class SearchEbayView(APIView):
             serializer_data = serializers.EbayProductSerializers(list_paginated, many=True)
             serializer = serializer_data.data
             serializer.append({'total_items': count})
-            return Response(serializer)
+            return Response(serializer, status=status.HTTP_200_OK)
         except ConnectionError as e:
-            #print("conecction error",e)
-            #print("conecction dic",e.response.dict())
-            return Response({'message', e}, status=STATUS['400'])
+            print("conecction error", e)
+            return Response({'message', e}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AmazonViewSet(viewsets.ModelViewSet):
@@ -269,12 +254,11 @@ class AmazonViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = AmazonAssociates.objects.filter(user=request.user)
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         context = {'request': request}
-        serializer_data = validations.AmazonKeyValidations(data=request.data,
-                                                      context=context)
+        serializer_data = validations.AmazonKeyValidations(data=request.data, context=context)
         #serializer_data.is_valid(raise_exception=True)
         if serializer_data.is_valid() is False:
             errors_msg = []
@@ -282,38 +266,39 @@ class AmazonViewSet(viewsets.ModelViewSet):
             for i in errors_keys:
                 errors_msg.append(str(i) + ": " + str(serializer_data.errors[i][0]))
             error_msg = "".join(errors_msg)
-            return Response({'message': errors_msg[0]}, status=STATUS['400'])
+            return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer_data)
         serializer = serializer_data.data
         serializer['message'] = 'the amazon account has been saved successfully'
-        return Response(serializer, status=STATUS['201'])
+        return Response(serializer, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         #partial = kwargs.pop('partial', False)
         data = request.data
         instance = self.get_object()
         if not data.get('associate_tag'):
-            return Response({'message': 'the amazon associate username cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the amazon associate username cant be empty'},
+                            status=status.HTTP_400_BAD_REQUEST)
         if not data.get('access_key_id'):
-            return Response({'message': 'The amazon access key is required'}, status=STATUS['400'])
+            return Response({'message': 'The amazon access key is required'}, status=status.HTTP_400_BAD_REQUEST)
         if not data.get('secrect_access_key'):
-            return Response({'message': 'The amazon secrect key is required'}, status=STATUS['400'])
+            return Response({'message': 'The amazon secrect key is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            amazon = AmazonAssociates.objects.get(associate_tag=data.get('associate_tag'))
+            amazon_update = AmazonAssociates.objects.get(associate_tag=data.get('associate_tag'))
         except AmazonAssociates.DoesNotExist:
-            return Response({'message': 'the amazon associate username not exit'}, status=STATUS['400'])
-        amazon.access_key_id=data.get('access_key_id')
-        amazon.secrect_access_key = data.get('secrect_access_key')
-        amazon.save()
-        serializer_data = self.get_serializer(amazon)
+            return Response({'message': 'the amazon associate username not exit'}, status=status.HTTP_400_BAD_REQUEST)
+        amazon_update.access_key_id = data.get('access_key_id')
+        amazon_update.secrect_access_key = data.get('secrect_access_key')
+        amazon_update.save()
+        serializer_data = self.get_serializer(amazon_update)
         serializer = serializer_data.data
         serializer['message'] = 'the amazon account has been updated successfully'
-        return Response(serializer)
+        return Response(serializer, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({'message': 'The amazon key has been deleted'})
+        return Response({'message': 'The amazon key has been deleted'}, status=status.HTTP_200_OK)
 
 
 class EbayViewSet(viewsets.ModelViewSet):
@@ -324,12 +309,11 @@ class EbayViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = EbayAssociates.objects.filter(user=request.user)
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         context = {'request': request}
-        serializer_data = validations.EbayKeyValidations(data=request.data,
-                                                    context=context)
+        serializer_data = validations.EbayKeyValidations(data=request.data, context=context)
         #serializer_data.is_valid(raise_exception=True)
         if serializer_data.is_valid() is False:
             errors_msg = []
@@ -337,17 +321,17 @@ class EbayViewSet(viewsets.ModelViewSet):
             for i in errors_keys:
                 errors_msg.append(str(i) + ": " + str(serializer_data.errors[i][0]))
             error_msg = "".join(errors_msg)
-            return Response({'message': errors_msg[0]}, status=STATUS['400'])
+            return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer_data)
         serializer = serializer_data.data
         serializer['message'] = 'the ebay account has been saved successfully'
-        return Response(serializer, status=STATUS['201'],)
+        return Response(serializer, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         data = request.data
         instance = self.get_object()
         if not data.get('client_id'):
-            return Response({'message': 'the client_id cant be empty'}, status=STATUS['400'])
+            return Response({'message': 'the client_id cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             ebay = EbayAssociates.objects.get(client_id=data.get('client_id'))
         except EbayAssociates.DoesNotExist:
@@ -357,9 +341,9 @@ class EbayViewSet(viewsets.ModelViewSet):
         serializer_data = serializers.EbayProfileSerializers(ebay)
         serializer = serializer_data.data
         serializer['message'] = 'the ebay account has been updated successfully'
-        return Response(serializer)
+        return Response(serializer, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({'message': 'The ebay key has been deleted'})
+        return Response({'message': 'The ebay key has been deleted'}, status=status.HTTP_200_OK)
