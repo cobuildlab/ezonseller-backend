@@ -18,7 +18,7 @@ from django.utils.encoding import force_text
 from django.db.models import Q
 from account.tokens import account_activation_token
 from rest_framework.decorators import detail_route
-from account.tasks import disableCodeRecoveryPassword
+from account.tasks import disable_code_recovery_password
 import re
 import base64
 import requests
@@ -156,7 +156,7 @@ class RequestRecoverPassword(APIView):
             return Response({'message': 'The email not exist in database'}, status=status.HTTP_400_BAD_REQUEST)
         if notify_views.recover_password(user, request):
             expire = datetime.now() + timedelta(minutes=10)
-            disableCodeRecoveryPassword.apply_async(args=[user.id], eta=expire)
+            disable_code_recovery_password.apply_async(args=[user.id], eta=expire)
             return Response({'message': 'The email has been send'}, status=status.HTTP_200_OK)
         return Response({'message': 'The email cannot be sent'}, status=status.HTTP_400_BAD_REQUEST)
 

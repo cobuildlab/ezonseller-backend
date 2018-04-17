@@ -8,7 +8,7 @@ from django.utils import timezone
 
 
 @shared_task
-def disableCodeRecoveryPassword(instance):
+def disable_code_recovery_password(instance):
     instance = account_models.User.objects.get(id=instance)
     instance.recovery = ''
     instance.save()

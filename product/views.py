@@ -15,10 +15,9 @@ from product.models import AmazonAssociates, EbayAssociates, Country, CacheAmazo
 from product import validations
 from product.pagination import paginate
 from account.models import User
-from payment.models import PaymentHistory, PlanSubscription
+from payment.models import PaymentHistory
 import logging
 from django.contrib.postgres.aggregates import ArrayAgg
-import datetime
 from urllib.error import HTTPError
 import time
 log = logging.getLogger('product.views')

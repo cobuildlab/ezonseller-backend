@@ -34,11 +34,33 @@ from django.contrib.postgres.aggregates import ArrayAgg
 #     return True
 
 
+@periodic_task(run_every=timedelta(minutes=5), name="disable_plan_subscriptions", ignore_result=True)
+def disable_plan_subscriptions():
+    date_now = timezone.now()
+    users = account_models.User.objects.all().exclude(type_plan="Free").exclude(is_superuser=True)
+    users = users.aggregate(userid=ArrayAgg('id')) 
+    payments = payment_models.PaymentHistory.objects.filter(user__in=users.get('userid')).\
+        exclude(accept=False).exclude(automatic_payment=False)
+    for payment in payments:
+        if payment.date_finish <= date_now:
+            user = account_models.User.objects.get(id=payment.user.id)
+            user.type_plan = 'Free'
+            user.id_plan = 0
+            user.save()
+            payment.accept = False
+            payment.automatic_payment = False
+            payment.save()
+            if notify_views.planSubcriptionEnd(user, payment.title):
+                print("email send")
+            else:
+                print("email problems")
+    return True
+
 @periodic_task(run_every=crontab(minute=0, hour=12), name="disable_plan_subscriptions", ignore_result=True)
 def disable_plan_subscriptions():
-    datenow = timezone.now() 
+    datenow = timezone.now()
     users = account_models.User.objects.all().exclude(type_plan="Free")
-    users = users.aggregate(userid=ArrayAgg('id')) 
+    users = users.aggregate(userid=ArrayAgg('id'))
     payments = payment_models.PaymentHistory.objects.filter(user__in=users.get('userid')).exclude(accept=False)
     for payment in payments:
         if payment.date_finish < datenow:

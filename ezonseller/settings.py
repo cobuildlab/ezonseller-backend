@@ -346,7 +346,7 @@ CELERY_BROKER_URL = 'amqp://localhost'
 #WORKER_CONCURRENCY = 50
 ##if BROKER_URL == "django://":
 ##    INSTALLED_APPS += ("kombu.transport.django",) this no work in heroku
-#CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 #CELERY_BROKER_URL = os.environ['REDIS_URL']
 #CELERY_RESULT_BACKEND = os.environ['REDIS_URL']
