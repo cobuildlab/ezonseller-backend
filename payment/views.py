@@ -35,11 +35,11 @@ def add_years(d, years):
 def extract_date(date):
     number = date[0:1]
     string = date[2:]
-    mounths = {'1': 5, '3': 15, '6': 30}
+    months = {'1': 5, '3': 15, '6': 30}
     years = {'1': 1, '2': 2, '3': 3}
     now = datetime.now()
     if string == 'month':
-        mount = mounths[number]
+        mount = months[number]
         endDate = now + timedelta(6*mount)
     if string == 'year':
         year = years[number]
@@ -185,7 +185,6 @@ class PurchasePlanView(APIView):
         user.id_plan = plan.id
         user.save()
         plan_finish = extract_date(plan.duration)
-        numberpayment = payment.get('payment_id')
         payment = PaymentHistory.objects.create(
             user=user,
             id_plan=plan.id,
@@ -208,7 +207,7 @@ class PurchasePlanView(APIView):
         )
         #expire = plan_finish
         #tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
-        if notify_views.payment_notification(user, card, plan, numberpayment):
+        if notify_views.payment_notification(user, card, plan, payment.get('payment_id')):
             print("the email has been send")
         else:
             print("the email not sent") 

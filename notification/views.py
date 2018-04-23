@@ -33,7 +33,7 @@ def recover_password(user, request):
         html_content = render_to_string("email/recovery_password.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],
                                       headers={'From': 'Ezonseller <'+from_email+'>',
-                                      'Reply-to': 'Ezonseller <'+from_email+'>'})
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         user.recovery = new_code
@@ -57,8 +57,8 @@ def activate_account(user, request):
         text_content = render_to_string("email/user_verification.html", data)
         html_content = render_to_string("email/user_verification.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],
-                                    headers={'From': 'Ezonseller <'+from_email+'>',
-                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
@@ -80,8 +80,8 @@ def cancel_subscription(user, plan):
         text_content = render_to_string("email/cancel_subscrition.html", data)
         html_content = render_to_string("email/cancel_subscrition.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],
-                                    headers={'From': 'Ezonseller <'+from_email+'>',
-                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
@@ -101,8 +101,8 @@ def accountSecurityBlock(user):
         text_content = render_to_string("email/user_security_block.html", data)
         html_content = render_to_string("email/user_security_block.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],
-                                    headers={'From': 'Ezonseller <'+from_email+'>',
-                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
@@ -110,7 +110,7 @@ def accountSecurityBlock(user):
         return False
 
 
-def planSubcriptionEnd(user, plan_title):
+def plan_subscription_end(user, plan_title):
     #try:
     to = user.email
     data = {'domain_fron': 'app.ezonseller.com',
@@ -132,7 +132,7 @@ def planSubcriptionEnd(user, plan_title):
     #    return False
         
 
-def payment_notification(user, card, plan, numberPayment):
+def payment_notification(user, card, plan, number_payment):
     try:
         to = user.email
         data = {'domain_fron': 'app.ezonseller.com',
@@ -142,14 +142,62 @@ def payment_notification(user, card, plan, numberPayment):
                 'card': card,
                 'creditCard': card.number_card[-4:],
                 'plan': plan,
-                'numberPayment': numberPayment
+                'numberPayment': number_payment
                 }
         subject, from_email = data['msg'], EMAIL_HOST_USER
         text_content = render_to_string("email/payment_notification.html", data)
         html_content = render_to_string("email/payment_notification.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],
-                                    headers={'From': 'Ezonseller <'+from_email+'>',
-                                    'Reply-to': 'Ezonseller <'+from_email+'>'})
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
+        send.attach_alternative(html_content, "text/html")
+        send.send()
+        return True
+    except:
+        return False
+
+
+def payment_automatic(user, card, plan, number_payment):
+    to = user.email
+    data = {'domain_fron': 'app.ezonseller.com',
+            'url': settings.URL,
+            'username': user.username,
+            'msg': 'Payment Confirmation',
+            'card': card,
+            'creditCard': card.number_card[-4:],
+            'plan': plan,
+            'numberPayment': number_payment
+            }
+    subject, from_email = data['msg'], EMAIL_HOST_USER
+    text_content = render_to_string("email/payment_automatic.html", data)
+    html_content = render_to_string("email/payment_automatic.html", data)
+    send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                  headers={'From': 'Ezonseller <'+from_email+'>',
+                                           'Reply-to': 'Ezonseller <'+from_email+'>'})
+    send.attach_alternative(html_content, "text/html")
+    send.send()
+    return True
+
+
+def payment_failure(user, plan, attempt):
+    try:
+        to = user.email
+        data = {'domain_fron': 'app.ezonseller.com',
+                'url': settings.URL,
+                'username': user.username,
+                'msg': 'Payment Failure',
+                'plan': plan,
+                }
+        subject, from_email = data['msg'], EMAIL_HOST_USER
+        if attempt != 0:
+            text_content = render_to_string("email/payment_fail.html", data)
+            html_content = render_to_string("email/payment_fail.html", data)
+        else:
+            text_content = render_to_string("email/disable_user.html", data)
+            html_content = render_to_string("email/disable_user.html", data)
+        send = EmailMultiAlternatives(subject, text_content, from_email, [to],
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
@@ -169,8 +217,8 @@ def support_notify(user, request):
         text_content = render_to_string("email/contact_support.html", data)
         html_content = render_to_string("email/contact_support.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],
-                                headers={'From': 'Ezonseller <'+from_email+'>',
-                                'Reply-to': 'Ezonseller <'+from_email+'>'})
+                                      headers={'From': 'Ezonseller <'+from_email+'>',
+                                               'Reply-to': 'Ezonseller <'+from_email+'>'})
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True

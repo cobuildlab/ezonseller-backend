@@ -156,12 +156,12 @@ class SearchAmazonView(APIView):
         if not plan_history.unlimited_search:
             if plan_history.number_search == 0:
                 user = request.user
-                user.type_plan = 'Free'
-                user.id_plan = 0
-                user.save()
-                plan_history.accept = False
-                plan_history.automatic_payment = False
-                plan_history.save()
+                #user.type_plan = 'Free'
+                #user.id_plan = 0
+                #user.save()
+                #plan_history.accept = False
+                #plan_history.automatic_payment = False
+                #plan_history.save()
                 data = {
                     'id': user.id,
                     'username': user.username,
@@ -169,9 +169,7 @@ class SearchAmazonView(APIView):
                     'last_name': user.last_name,
                     'email': user.email,
                     'type_plan': user.type_plan,
-                    'message': 'You have reached the limit of allowed searches, '
-                               'the plan has been removed from your account,'
-                               'please purchase one plan of our selection, to continue performing searches,',
+                    'message': 'You have reached the limit of allowed searches',
                 }
                 return Response(data, status=status.HTTP_200_OK)
             else:

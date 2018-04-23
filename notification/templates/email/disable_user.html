@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Payment Confirmation</title>
+    <title>Disable User</title>
 </head>
 
 <body style="margin: 0;">
@@ -21,27 +21,11 @@
                     <tr>
                         <td style="background-color: #fff;text-align: center;">
                             <img src="{{url}}{% static 'img/logoEzonseller-curva.png' %}" style="width: 200px; margin-top: 20px;">
-                            <h2 style="text-align: center; color:#444444;">Payment Confirmation</h2>
+                            <h2 style="text-align: center; color:#444444;">Payment Failure</h2>
                             <h2 style="text-align: center; color:#444444;">Hi {{username}}</h2>
-                            <p style="margin-left:40px; margin-right:40px; color:#444444; font-size: 17px;">Your payment to ezonseller for subscription to the plan <b>{{plan.title}}</b> was successful</p>
-                            <div style="margin-left:10%">
-                                <p style="text-align: center; margin-left: -10%;color:#444444;">
-                                    <b style="font-size: 1.5em">Payment status</b>
-                                </p>
-                                <p style="text-align:left;color:#444444;">
-                                    Amount: USD ${{plan.cost}}
-                                </p>
-                                <p style="text-align:left;color:#444444;">
-                                    Payment Number: {{numberPayment}}
-                                </p>
-                                <p style="text-align:left;color:#444444;">
-                                    Credit Card: {{card.type_card}} ending in {{creditCard}}
-                                </p>
-                            </div><br>
-                            <p style="margin-left:40px; margin-right:40px; color:#444444; font-size: 17px;">
-                                <a style="border: 1px solid #023049;padding: 10px;background-color: #023049;color: #ffffff;text-decoration: none;text-transform: uppercase;margin-top: 20px; font-size: 12px;" href="https://{{domain_fron}}/login">Go to the web</a>
-                            </p>
-
+                            <p style="margin-left:40px; margin-right:40px; color:#444444; font-size: 17px;">The automatic payment to ezonseller for the plan {{plan.title}} was rejected five times, consequently we will disable your account, for more information
+                            please contact <a href="mailto:support@ezonseller.com?Subject=Payment%20Problem" target="_top">support@ezonseller.com</a></p>
+                            <br>
 
                             <a href="https://www.facebook.com/Ezonseller-1044158052402053/"><img src="{{url}}{% static 'img/fa.png' %}" style="width: 25px; margin-top: 20px;"></a>
                             <a href="https://twitter.com/ezonseller"><img src="{{url}}{% static 'img/twit.png' %}" style="width: 25px;margin-top: 20px;margin-left: 10px;margin-right: 10px;"></a>
