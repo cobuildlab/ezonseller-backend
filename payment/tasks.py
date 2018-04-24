@@ -15,6 +15,7 @@ import stripe
 import math
 from ezonseller import settings
 
+
 def add_years(d, years):
     new_year = d.year + years
     try:
@@ -24,6 +25,7 @@ def add_years(d, years):
             return d.replace(year=new_year, day=28)
         raise
 
+
 def extract_date(date):
     number = date[0:1]
     string = date[2:]
@@ -32,11 +34,11 @@ def extract_date(date):
     now = datetime.now()
     if string == 'month':
         mount = months[number]
-        endDate = now + timedelta(6*mount)
+        end_date = now + timedelta(6*mount)
     if string == 'year':
         year = years[number]
-        endDate = add_years(now, year)
-    return endDate
+        end_date = add_years(now, year)
+    return end_date
 
 
 @shared_task
@@ -45,6 +47,12 @@ def execute_payment(payment_info):
     user = account_models.User.objects.get(id=payment_info.user.id)
     plan = payment_models.PlanSubscription.objects.get(id=payment_info.id_plan)
     card = payment_models.CreditCard.objects.get(id=payment_info.id_card)
+    if user.attemptPayment == 0:
+        notify_views.payment_failure(user, plan, 0)
+        print("email has send user disable")
+        user.attemptPayment = -1
+        user.save()
+        return "user is disable"
     try:
         charge = stripe.Charge.create(
             amount=math.ceil(int(str(plan.cost).replace(".", ''))),  # amount in cents
@@ -54,22 +62,42 @@ def execute_payment(payment_info):
             description=plan.description
         )
         payment_id = charge.get('id')
+        plan_finish = extract_date(plan.duration)
+        payment = payment_models.PaymentHistory.objects.create(
+            user=user,
+            id_plan=plan.id,
+            paymentId=payment_id,
+            title=plan.title,
+            cost=plan.cost,
+            image=plan.image,
+            description=plan.description,
+            id_card=card.id,
+            name=card.first_name + card.last_name,
+            number_card=card.number_card,
+            cod_security=card.cod_security,
+            date_expiration=card.date_expiration,
+            date_start=datetime.now(),
+            date_finish=plan_finish,
+            accept=True,
+            unlimited_search=plan.unlimited_search,
+            number_search=plan.number_search,
+            automatic_payment=plan.automatic_payment
+        )
+        if notify_views.payment_automatic(user, card, plan, payment_id):
+            print("the email has been send")
+        else:
+            print("the email not sent")
+        payment_info.accept = False
+        payment_info.save()
+        user.attemptPayment = 5
+        user.save()
+        return "The payment is correct"
     except stripe.error.CardError as e:
         # Since it's a decline, stripe.error.CardError will be caught
         body = e.json_body
         err = body['error']
-        print("Status is: %s" % e.http_status)
-        print("Type is: %s" % err['type'])
-        print("Code is: %s" % err['code'])
-        # param is '' in this case
-        print("Param is: %s" % err['param'])
-        print("Message is: %s" % err['message'])
-        if notify_views.payment_failure(user, plan, user.attemptPayment):
-            print("email has send")
-        rest = user.attemptPayment - 1
-        user.attemptPayment = rest
-        user.save()
-        return "payment problem" + " " + str(err['message'])
+        message = "payment problem " + str(err['message'])
+        print(message)
     except stripe.error.RateLimitError as e:
         # Too many requests made to the API too quickly
         pass
@@ -88,54 +116,36 @@ def execute_payment(payment_info):
         # yourself an email
         pass
     except Exception as e:
-        if notify_views.payment_failure(user, plan, user.attemptPayment):
-            print("email has send")
+        message = "payment problem " + str(e)
+        print(message)
+    if notify_views.payment_failure(user, plan, user.attemptPayment):
+        print("email has send payment failure")
         rest = user.attemptPayment - 1
         user.attemptPayment = rest
         user.save()
-        return "payment problem" + " " + str(e)
-    plan_finish = extract_date(plan.duration)
-    payment = payment_models.PaymentHistory.objects.create(
-        user=user,
-        id_plan=plan.id,
-        paymentId=payment_id,
-        title=plan.title,
-        cost=plan.cost,
-        image=plan.image,
-        description=plan.description,
-        id_card=card.id,
-        name=card.first_name + card.last_name,
-        number_card=card.number_card,
-        cod_security=card.cod_security,
-        date_expiration=card.date_expiration,
-        date_start=datetime.now(),
-        date_finish=plan_finish,
-        accept=True,
-        unlimited_search=plan.unlimited_search,
-        number_search=plan.number_search,
-        automatic_payment=plan.automatic_payment
-    )
-    if notify_views.payment_automatic(user, card, plan, payment_id):
-        print("the email has been send")
+        return "The payment can not be made"
     else:
-        print("the email not sent")
-    return True
+        print("email has send payment failure")
+        rest = user.attemptPayment - 1
+        user.attemptPayment = rest
+        user.save()
+        return "The payment can not be made"
 
 
-@periodic_task(run_every=timedelta(minutes=5), name="example_double", ignore_result=True)
+@periodic_task(run_every=crontab(minute=0, hour=12), name="automatic_payment", ignore_result=True)
 def automatic_payment():
     date_now = timezone.now()
     payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False)
     count = 1
     for payment in payments:
-        if payment.date_finish <= date_now:
+        if payment.date_finish <= date_now and payment.user.is_active:
             expire = datetime.now() + timedelta(minutes=count)
             execute_payment.apply_async(args=[payment], eta=expire)
             count += 1
     return True
 
 
-@periodic_task(run_every=crontab(minute=0, hour=12), name="disable_plan_subscriptions", ignore_result=True)
+@periodic_task(run_every=crontab(minute=30, hour=12), name="disable_plan_subscriptions", ignore_result=True)
 def disable_plan_subscriptions():
     date_now = timezone.now()
     users = account_models.User.objects.all().exclude(type_plan="Free").exclude(is_superuser=True)

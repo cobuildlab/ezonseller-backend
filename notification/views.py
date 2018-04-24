@@ -193,6 +193,8 @@ def payment_failure(user, plan, attempt):
             text_content = render_to_string("email/payment_fail.html", data)
             html_content = render_to_string("email/payment_fail.html", data)
         else:
+            user.is_active = False
+            user.save()
             text_content = render_to_string("email/disable_user.html", data)
             html_content = render_to_string("email/disable_user.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],

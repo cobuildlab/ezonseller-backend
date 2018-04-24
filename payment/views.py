@@ -40,11 +40,11 @@ def extract_date(date):
     now = datetime.now()
     if string == 'month':
         mount = months[number]
-        endDate = now + timedelta(6*mount)
+        end_date = now + timedelta(6*mount)
     if string == 'year':
         year = years[number]
-        endDate = add_years(now, year)
-    return endDate
+        end_date = add_years(now, year)
+    return end_date
 
 
 class TermsConditionView(APIView):
@@ -249,7 +249,6 @@ class CancelSubscriptionView(APIView):
         payments = PaymentHistory.objects.filter(user=user, id_plan=plan.id).order_by('-id')[:1]
         user_payment = payments[0]
         user_payment.accept = False
-        user_payment.automatic_payment = False
         user_payment.save()
         cancel = CancelSubscription.objects.get_or_create(
             user=user,

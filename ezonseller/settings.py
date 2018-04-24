@@ -26,8 +26,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9cejr#ku3=-l0qu+)oz^yj(p(y5v*)3_lo9k6_a9x(vecja$op'
-#STRIPE_SECRET_API_KEY = 'sk_live_hyvLhaFuhjA2cRnjv2xFCutE'
-STRIPE_SECRET_API_KEY = 'sk_test_9keGS7T6pyiB4tiarUdI7znF'
+STRIPE_SECRET_API_KEY = 'sk_live_hyvLhaFuhjA2cRnjv2xFCutE'
+#STRIPE_SECRET_API_KEY = 'sk_test_9keGS7T6pyiB4tiarUdI7znF'
 
 #paypal secret keys
 PAYPAL_MODE = 'live' #or live
@@ -150,8 +150,8 @@ EMAIL_HOST_USER = 'no-reply@stcsolutions.com.ve'
 EMAIL_HOST_PASSWORD = 'v<.VY?GA$+2HK'
 EMAIL_PORT = 587
 
-#EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'
-EMAIL_HOST_USER_SUPPORT = 'carlos5_zeta@hotmail.com'
+EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'
+#EMAIL_HOST_USER_SUPPORT = 'carlos5_zeta@hotmail.com'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -327,7 +327,7 @@ LOGGING = {
 }
 """
 #celery
-CELERY_BROKER_URL = 'amqp://localhost'
+#CELERY_BROKER_URL = 'amqp://localhost'
 #CELERY_BROKER_URL = 'redis://localhost:6379/0'
 #rediscloud
 #BROKER_URL = os.environ.get("REDISCLOUD_URL", "django://")
@@ -336,16 +336,16 @@ CELERY_BROKER_URL = 'amqp://localhost'
 #}
 #BROKER_POOL_LIMIT = None
 #rabbitmqcloud
-#BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
-#BROKER_POOL_LIMIT = 1
-#BROKER_CONNECTION_MAX_RETRIES = None
-#BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
-#RESULT_BACKEND = None # AMQP is not recommended as result backend as it creates thousands of queues
-#EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
-#WORKER_PREFETCH_MULTIPLIER = 1 # Disable prefetching, it's causes problems and doesn't help performance
-#WORKER_CONCURRENCY = 50
-##if BROKER_URL == "django://":
-##    INSTALLED_APPS += ("kombu.transport.django",) this no work in heroku
+BROKER_URL = os.environ.get("CLOUDAMQP_URL", "django://")
+BROKER_POOL_LIMIT = 1
+BROKER_CONNECTION_MAX_RETRIES = None
+BROKER_HEARTBEAT = None # We're using TCP keep-alive instead
+RESULT_BACKEND = None # AMQP is not recommended as result backend as it creates thousands of queues
+EVENT_QUEUE_EXPIRES = 60 # Will delete all celeryev. queues without consumers after 1 minute.
+WORKER_PREFETCH_MULTIPLIER = 1 # Disable prefetching, it's causes problems and doesn't help performance
+WORKER_CONCURRENCY = 50
+#if BROKER_URL == "django://":
+#    INSTALLED_APPS += ("kombu.transport.django",) this no work in heroku
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 #CELERY_BROKER_URL = os.environ['REDIS_URL']
