@@ -357,9 +357,10 @@ class CreditCardViewSet(viewsets.ModelViewSet):
                     return False
             else:
                 print("entro")
-                costumer = stripe.Customer.retrieve(user.customer_id)
                 try:
+                    costumer = stripe.Customer.retrieve(user.customer_id)
                     costumer.sources.create(source=token.get('id'))
+                    return True
                 except stripe.error.CardError as e:
                     # Since it's a decline, stripe.error.CardError will be caught
                     body = e.json_body
