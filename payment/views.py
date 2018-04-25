@@ -174,11 +174,11 @@ class PurchasePlanView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         if user.type_plan == "Free" or user.type_plan == "free":
-            payment = self.paymentPlanStripe(plan, card, user)
+            payment_info = self.paymentPlanStripe(plan, card, user)
         else:
             return Response({"message": "You already have an active plan and your account"},
                             status=status.HTTP_400_BAD_REQUEST)
-        if not payment:
+        if not payment_info:
             return Response({'message': 'payment could not be made, please notify your bank distributor'},
                             status=status.HTTP_400_BAD_REQUEST)
         user.type_plan = plan.title
@@ -188,7 +188,7 @@ class PurchasePlanView(APIView):
         payment = PaymentHistory.objects.create(
             user=user,
             id_plan=plan.id,
-            paymentId=payment.get('payment_id'),
+            paymentId=payment_info.get('payment_id'),
             title=plan.title,
             cost=plan.cost,
             image=plan.image,
@@ -207,7 +207,7 @@ class PurchasePlanView(APIView):
         )
         #expire = plan_finish
         #tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
-        if notify_views.payment_notification(user, card, plan, payment.get('payment_id')):
+        if notify_views.payment_notification(user, card, plan, payment_info.get('payment_id')):
             print("the email has been send")
         else:
             print("the email not sent") 
