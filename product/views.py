@@ -152,7 +152,7 @@ class SearchAmazonView(APIView):
             return Response(
                 {'message': 'You can not perform searches on Amazon, until you buy one of our plans in selection'},
                 status=status.HTTP_400_BAD_REQUEST)
-        plan_history = PaymentHistory.objects.get(id_plan=request.user.id_plan, title=request.user.type_plan)
+        plan_history = PaymentHistory.objects.filter(user_id=request.user.id,id_plan=request.user.id_plan, title=request.user.type_plan).last()
         if not plan_history.unlimited_search:
             if plan_history.number_search == 0:
                 user = request.user
