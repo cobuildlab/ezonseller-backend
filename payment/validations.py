@@ -19,14 +19,17 @@ class CreditCardValidations(serializers.ModelSerializer):
                   'date_expiration')
 
     def validate_number_card(self, number_card):
+        print("1")
         if self.context["request"].method != 'PUT':
-            if not re.match(r'^[-+]?[0-9]+$',number_card):
+            if not re.match(r'^[-+]?[0-9]+$', number_card):
                 raise serializers.ValidationError('the credit card can only have numbers')
         return number_card
-    
+
     def validate_cod_security(self, cod_security):
+        print("2")
+
         if self.context["request"].method != 'PUT':
-            if not re.match(r'^[-+]?[0-9]+$',cod_security):
+            if not re.match(r'^[-+]?[0-9]+$', cod_security):
                 raise serializers.ValidationError('the security code can only have numbers')
         return cod_security
 
@@ -46,23 +49,27 @@ class CreditCardValidations(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
+        try:
+            validated_data['user'] = self.context['request'].user
+        except:
+            validated_data = self.context
         card = CreditCard.objects.create(**validated_data)
         return card
 
     def update(self, instance, validated_data):
         if validated_data.get('first_name'):
-           instance.name = validated_data.get('first_name')
+            instance.name = validated_data.get('first_name')
         if validated_data.get('last_name'):
-           instance.name = validated_data.get('last_name')
+            instance.name = validated_data.get('last_name')
         if validated_data.get('type_card'):
             instance.type_card = validated_data.get('type_card')
         if validated_data.get('number_card'):
             if validated_data.get('number_card') == instance.number_card:
                 instance.number_card = validated_data.get('number_card')
             elif CreditCard.objects.filter(number_card=validated_data.get('number_card')).exists():
-                raise serializers.ValidationError({'message':[_('the number of credit card exists please try with another number')]})
-            instance.number_card = validated_data.get('number_card')    
+                raise serializers.ValidationError(
+                    {'message': [_('the number of credit card exists please try with another number')]})
+            instance.number_card = validated_data.get('number_card')
         if validated_data.get('cod_security'):
             instance.cod_security = validated_data.get('cod_security')
         if validated_data.get('date_expiration'):
@@ -74,14 +81,13 @@ class CreditCardValidations(serializers.ModelSerializer):
 class CreditCardCreateValidations(CreditCardValidations):
 
     def validate_number_card(self, number_card):
-        if not re.match(r'^[-+]?[0-9]+$',number_card):
+        if not re.match(r'^[-+]?[0-9]+$', number_card):
             raise serializers.ValidationError('the credit card can only have numbers')
         if CreditCard.objects.filter(number_card=number_card).exists():
             raise serializers.ValidationError('the number of credit card exists please try with another number')
         return number_card
 
     def validate_cod_security(self, cod_security):
-        if not re.match(r'^[-+]?[0-9]+$',cod_security):
+        if not re.match(r'^[-+]?[0-9]+$', cod_security):
             raise serializers.ValidationError('the security code can only have numbers')
         return cod_security
-

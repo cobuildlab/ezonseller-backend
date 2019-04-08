@@ -23,6 +23,7 @@ import re
 import base64
 import requests
 import json
+from payment.views import CreditCardViewSet
 from ezonseller import settings
 
 
@@ -114,6 +115,9 @@ class RegisterView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        user = request.data.get('user')
+        card = CreditCardViewSet.create(CreditCardViewSet,request)
+
         if not request.data.get('callback'):
             return Response({"message": "reCAPTCHA field cant not be empty"}, status=status.HTTP_400_BAD_REQUEST)
         recaptcha_response = request.data['callback']
@@ -123,7 +127,8 @@ class RegisterView(APIView):
         })
         if not json.loads(r.content.decode())['success']:
             return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
-        user_serializer = validations.UserCreateSerializers(data=request.data)
+
+        user_serializer = validations.UserCreateSerializers(data=user)
         if user_serializer.is_valid() is False:
             errors_msg = []
             errors_keys = list(user_serializer.errors.keys())
@@ -131,10 +136,22 @@ class RegisterView(APIView):
                 errors_msg.append(str(i) + ": " + str(user_serializer.errors[i][0]))
             error_msg = "".join(errors_msg)
             return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
+
+        if card:
+            return Response({'message': card}, status=status.HTTP_400_BAD_REQUEST)
+
         user = user_serializer.save()
+        user_id = account_models.User.objects.latest('id')
+        request.data.get('card')['user'] = user_id
+
+        card = CreditCardViewSet.create(CreditCardViewSet,request)
+        if card:
+            user.delete()
+            return Response({'message': card}, status=status.HTTP_400_BAD_REQUEST)
+
         if notify_views.activate_account(user, request):
             return Response({'username': user.username, 'message': 'The email has been send'},
-                            status=status.HTTP_201_CREATED)
+                        status=status.HTTP_201_CREATED)
         else:
             user.delete()
             return Response({'message': 'The email cannot be sent and account not created'},

@@ -16,10 +16,12 @@ from datetime import datetime
 from datetime import timedelta
 from calendar import isleap
 from ezonseller import settings
-#from payment import tasks
+# from payment import tasks
 from notification import views as notify_views
 import stripe
 import math
+from account import models as account_models
+
 
 
 def add_years(d, years):
@@ -40,7 +42,7 @@ def extract_date(date):
     now = datetime.now()
     if string == 'month':
         mount = months[number]
-        end_date = now + timedelta(6*mount)
+        end_date = now + timedelta(6 * mount)
     if string == 'year':
         year = years[number]
         end_date = add_years(now, year)
@@ -58,7 +60,7 @@ class TermsConditionView(APIView):
 
 class PurchasePlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    
+
     """
     def paymentPlanPaypal(self, plan, card):
         mounth = str(card.date_expiration)
@@ -104,9 +106,10 @@ class PurchasePlanView(APIView):
             return None
         return None
     """
+
     def paymentPlanStripe(self, plan: PlanSubscription, card: CreditCard, user: User):
         stripe.api_key = settings.STRIPE_SECRET_API_KEY
-        
+
         try:
             charge = stripe.Charge.create(
                 amount=math.ceil(int(str(plan.cost).replace(".", ''))),  # amount in cents
@@ -128,21 +131,21 @@ class PurchasePlanView(APIView):
             print("Message is: %s" % err['message'])
             return None
         except stripe.error.RateLimitError as e:
-        # Too many requests made to the API too quickly
+            # Too many requests made to the API too quickly
             pass
         except stripe.error.InvalidRequestError as e:
-        # Invalid parameters were supplied to Stripe's API
+            # Invalid parameters were supplied to Stripe's API
             pass
         except stripe.error.AuthenticationError as e:
-        # Authentication with Stripe's API failed
-        # (maybe you changed API keys recently)
+            # Authentication with Stripe's API failed
+            # (maybe you changed API keys recently)
             pass
         except stripe.error.APIConnectionError as e:
-        # Network communication with Stripe failed
+            # Network communication with Stripe failed
             pass
         except stripe.error.StripeError as e:
-        # Display a very generic error to the user, and maybe send
-        # yourself an email
+            # Display a very generic error to the user, and maybe send
+            # yourself an email
             pass
         except Exception as e:
             return None
@@ -205,12 +208,12 @@ class PurchasePlanView(APIView):
             number_search=plan.number_search,
             automatic_payment=plan.automatic_payment
         )
-        #expire = plan_finish
-        #tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
+        # expire = plan_finish
+        # tasks.disablePlanSubcriptions.apply_async(args=[user.id,payment.id], eta=expire)
         if notify_views.payment_notification(user, card, plan, payment_info.get('payment_id')):
             print("the email has been send")
         else:
-            print("the email not sent") 
+            print("the email not sent")
         serializer_data = serializers.PaymentHistorySerializer(payment, many=False)
         serializer = serializer_data.data
         serializer['message'] = 'the purchase of the plan has been successful'
@@ -296,6 +299,8 @@ class CreditCardViewSet(viewsets.ModelViewSet):
                         "cvc": card.cod_security
                     },
                 )
+
+
                 card.card_id = token.get('card').get('id')
                 card.save()
             except stripe.error.CardError as e:
@@ -312,7 +317,7 @@ class CreditCardViewSet(viewsets.ModelViewSet):
             if not user.customer_id:
                 try:
                     costumer = stripe.Customer.create(
-                        description="Customer for "+ user.first_name + user.last_name,
+                        description="Customer for " + user.first_name + user.last_name,
                         email=user.email,
                         source=token.get('id')
                     )
@@ -350,7 +355,7 @@ class CreditCardViewSet(viewsets.ModelViewSet):
                 except stripe.error.StripeError as e:
                     # Display a very generic error to the user, and maybe send
                     # yourself an email
-                    print("StripeError",e)
+                    print("StripeError", e)
                     return False
                 except Exception as e:
                     print("final Exception", e)
@@ -392,7 +397,7 @@ class CreditCardViewSet(viewsets.ModelViewSet):
                 except stripe.error.StripeError as e:
                     # Display a very generic error to the user, and maybe send
                     # yourself an email
-                    print("StripeError",e)
+                    print("StripeError", e)
                     return False
                 except Exception as e:
                     print("final Exception", e)
@@ -400,33 +405,64 @@ class CreditCardViewSet(viewsets.ModelViewSet):
         return False
 
     def create(self, request, *args, **kwargs):
+
         context = {'request': request}
-        serializer_data = validations.CreditCardCreateValidations(data=request.data, context=context)
-        #serializer_data.is_valid(raise_exception=True)
+
+
+        if request.data.get('user'):
+            serializer_data = validations.CreditCardCreateValidations(data=request.data.get('card'), context=request.data.get('card'))
+        else:
+            serializer_data = validations.CreditCardCreateValidations(data=request.data, context=context)
+
+        # serializer_data.is_valid(raise_exception=True)
         if serializer_data.is_valid() is False:
             errors_msg = []
             errors_keys = list(serializer_data.errors.keys())
             for i in errors_keys:
                 errors_msg.append(str(i) + ": " + str(serializer_data.errors[i][0]))
             error_msg = "".join(errors_msg)
-            return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
-        self.perform_create(serializer_data)
-        serializer = serializer_data.data
-        stripe_card = self.stripe_costumer_card(serializer.get('id'), request.user)
-        if not stripe_card:
-            card = CreditCard.objects.get(id=serializer.get('id'))
-            card.delete()
-            return Response({"message": "cant not save the credit card please contact your bank"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        serializer['message'] = 'the credit card has been saved successfully'
-        return Response(serializer, status=status.HTTP_201_CREATED)
+            if request.data.get('user'):
+                return errors_msg[0]
+            else:
+                return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.data.get('card'):
+
+            if request.data.get('card').get('user'):
+
+                self.perform_create(self,serializer_data)
+                user = request.data.get('card').get('user')
+
+
+                serializer = serializer_data.data
+                stripe_card = self.stripe_costumer_card(self,serializer.get('id'), user)
+
+
+                if not stripe_card:
+                    card = CreditCard.objects.get(id=serializer.get('id'))
+                    card.delete()
+                    message = "cant not save the credit card please contact your bank";
+                    return message
+
+        if not request.data.get('card'):
+
+            self.perform_create(serializer_data)
+            serializer = serializer_data.data
+            stripe_card = self.stripe_costumer_card(serializer.get('id'), request.user)
+            if not stripe_card:
+                card = CreditCard.objects.get(id=serializer.get('id'))
+                card.delete()
+                return Response({"message": "cant not save the credit card please contact your bank"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            serializer['message'] = 'the credit card has been saved successfully'
+            return Response(serializer, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = validations.CreditCardValidations(instance, data=request.data, 
-        context={'request': request})
-        #serializer.is_valid(raise_exception=True)
+        serializer = validations.CreditCardValidations(instance, data=request.data,
+                                                       context={'request': request})
+        # serializer.is_valid(raise_exception=True)
         if serializer.is_valid() is False:
             errors_msg = []
             errors_keys = list(serializer.errors.keys())
@@ -447,7 +483,7 @@ class CreditCardViewSet(viewsets.ModelViewSet):
 
 class PlanView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
-    
+
     def get(self, request):
         queryset = PlanSubscription.objects.all()
         serializer = serializers.PlanSubscriptionSerializers(queryset, many=True)
