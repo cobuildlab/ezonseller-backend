@@ -19,15 +19,12 @@ class CreditCardValidations(serializers.ModelSerializer):
                   'date_expiration')
 
     def validate_number_card(self, number_card):
-        print("1")
         if self.context["request"].method != 'PUT':
             if not re.match(r'^[-+]?[0-9]+$', number_card):
                 raise serializers.ValidationError('the credit card can only have numbers')
         return number_card
 
     def validate_cod_security(self, cod_security):
-        print("2")
-
         if self.context["request"].method != 'PUT':
             if not re.match(r'^[-+]?[0-9]+$', cod_security):
                 raise serializers.ValidationError('the security code can only have numbers')
@@ -49,10 +46,7 @@ class CreditCardValidations(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        try:
-            validated_data['user'] = self.context['request'].user
-        except:
-            validated_data = self.context
+        validated_data['user'] = self.context['request'].user
         card = CreditCard.objects.create(**validated_data)
         return card
 

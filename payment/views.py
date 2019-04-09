@@ -408,11 +408,7 @@ class CreditCardViewSet(viewsets.ModelViewSet):
 
         context = {'request': request}
 
-
-        if request.data.get('user'):
-            serializer_data = validations.CreditCardCreateValidations(data=request.data.get('card'), context=request.data.get('card'))
-        else:
-            serializer_data = validations.CreditCardCreateValidations(data=request.data, context=context)
+        serializer_data = validations.CreditCardCreateValidations(data=request.data, context=context)
 
         # serializer_data.is_valid(raise_exception=True)
         if serializer_data.is_valid() is False:
@@ -426,36 +422,17 @@ class CreditCardViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'message': errors_msg[0]}, status=status.HTTP_400_BAD_REQUEST)
 
-        if request.data.get('card'):
-
-            if request.data.get('card').get('user'):
-
-                self.perform_create(self,serializer_data)
-                user = request.data.get('card').get('user')
-
-
-                serializer = serializer_data.data
-                stripe_card = self.stripe_costumer_card(self,serializer.get('id'), user)
-
-
-                if not stripe_card:
-                    card = CreditCard.objects.get(id=serializer.get('id'))
-                    card.delete()
-                    message = "cant not save the credit card please contact your bank";
-                    return message
-
-        if not request.data.get('card'):
-
-            self.perform_create(serializer_data)
-            serializer = serializer_data.data
-            stripe_card = self.stripe_costumer_card(serializer.get('id'), request.user)
-            if not stripe_card:
-                card = CreditCard.objects.get(id=serializer.get('id'))
-                card.delete()
-                return Response({"message": "cant not save the credit card please contact your bank"},
+        self.perform_create(serializer_data)
+        serializer = serializer_data.data
+        stripe_card = self.stripe_costumer_card(serializer.get('id'), request.user)
+        if not stripe_card:
+            card = CreditCard.objects.get(id=serializer.get('id'))
+            card.delete()
+            return Response({"message": "cant not save the credit card please contact your bank"},
                                 status=status.HTTP_400_BAD_REQUEST)
-            serializer['message'] = 'the credit card has been saved successfully'
-            return Response(serializer, status=status.HTTP_201_CREATED)
+        serializer['message'] = 'the credit card has been saved successfully'
+        return Response(serializer, status=status.HTTP_201_CREATED)
+
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)

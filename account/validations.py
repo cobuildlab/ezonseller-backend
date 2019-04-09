@@ -36,6 +36,7 @@ class UserSerializers(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
+
         if validated_data.get('first_name'):
             instance.first_name = validated_data.get('first_name')
         if validated_data.get('last_name'):
@@ -72,6 +73,8 @@ class UserCreateSerializers(UserSerializers):
         if accounts_models.User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError(_(u"the email already exist, please try with another email"))
         return email
+
+
 
 
 class UserRecoverPasswordSerializers(serializers.ModelSerializer):
