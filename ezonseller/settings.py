@@ -48,7 +48,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['ezonseller-backend.herokuapp.com','ezonsellerbackend.herokuapp.com',
                  'localhost', '127.0.0.1:8000', '127.0.0.1', '127.0.0.1:8080',
-                 'ezonseller.herokuapp.com', '192.168.0.9',]
+                 'ezonseller.herokuapp.com', '192.168.0.9']
 
 
 # Application definition
