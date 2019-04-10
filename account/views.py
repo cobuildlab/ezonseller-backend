@@ -115,14 +115,14 @@ class RegisterView(APIView):
 
     def post(self, request):
         user = request.data.get('user')
-
-        if not request.data.get('callback'):
+        if not user['callback']:
             return Response({"message": "reCAPTCHA field cant not be empty"}, status=status.HTTP_400_BAD_REQUEST)
-        recaptcha_response = request.data['callback']
+        recaptcha_response = user['callback']
         r = requests.post(settings.RECAPTCHA_CAPTCHA_URL, {
             'secret': settings.RECAPTCHA_PRIVATE_KEY,
             'response': recaptcha_response
         })
+
         if not json.loads(r.content.decode())['success']:
             return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
 
