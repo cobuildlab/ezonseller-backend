@@ -62,7 +62,8 @@ def activate_account(user, request):
         send.attach_alternative(html_content, "text/html")
         send.send()
         return True
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 

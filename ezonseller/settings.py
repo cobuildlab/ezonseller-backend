@@ -116,14 +116,7 @@ WSGI_APPLICATION = 'ezonseller.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-"""
+
 """
 DATABASES = {
     'default':env.db()
@@ -139,15 +132,26 @@ DATABASES = {
         'DATABASE_PORT': '5432',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+# EMAIL_BACKEND = "sgbackend.SendGridBackend"
+# print(os.environ)
+# SENDGRID_API_KEY = os.environ["SENDGRID_API_KEY"]
+# SENDGRID_SANDBOX_MODE_IN_DEBUG=False
+
 #DJ_DATABASE_URL
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
 
 #Email-AppProjecturation
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'no-reply@stcsolutions.com.ve'
-EMAIL_HOST_PASSWORD = 'v<.VY?GA$+2HK'
+EMAIL_HOST = os.environ["EMAIL_HOST"]
+EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 EMAIL_PORT = 587
 
 EMAIL_HOST_USER_SUPPORT = 'support@ezonseller.com'
