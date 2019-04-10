@@ -19,6 +19,12 @@ def serialize_credit_card(request, user):
 
 
 def create_card(card_serializer, user):
+
+    if 'year' in card_serializer.context: del card_serializer.context['year']
+    if 'month' in card_serializer.context: del card_serializer.context['month']
+    if 'first_name_card' in card_serializer.context: del card_serializer.context['first_name_card']
+    if 'last_name_card' in card_serializer.context: del card_serializer.context['last_name_card']
+
     card = CreditCard.objects.create(**card_serializer.context)
     id = card.id
     stripe_card = CreditCardViewSet.stripe_costumer_card(CreditCardViewSet, id, user)
