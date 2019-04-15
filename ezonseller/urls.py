@@ -18,6 +18,7 @@ from django.urls import path, re_path, include
 from account import views as account_views
 from product import views as product_views
 from payment import views as payment_views
+from payment import services as payment_services
 from rest_framework import routers
 
 
@@ -50,6 +51,8 @@ urlpatterns = [
     path('product/ebay-search/', product_views.SearchEbayView.as_view()),
     path('product/amazon-search/', product_views.SearchAmazonView.as_view()),
     path('product/amazon-lastsearch/', product_views.LastSearchView.as_view()),
+    path('payment/services/getallplan/', payment_services.getAllPlan),
+    path('payment/services/getplan/<int:id>/', payment_services.getPlan),
     # SSL certification
     # Path: http://app.ezonseller.com/.well-known/acme-challenge/QFnVMaHnHV0Y_5tn8gj3DlFEChrSQRGBQ76E1wtSlbY
     path('.well-known/acme-challenge/DfdNRsGSv5pe1ON98O0PR1v9BF-cvUAsEjIK_btr8oU', account_views.CertFileView.as_view()),

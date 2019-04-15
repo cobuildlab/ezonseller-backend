@@ -24,7 +24,7 @@ import base64
 import requests
 import json
 from ezonseller import settings
-from account.service import create_card, serialize_credit_card
+from account.service import create_card, serialize_credit_card, create_payment,get_plan
 
 class Login(APIView):
     """
@@ -115,6 +115,8 @@ class RegisterView(APIView):
 
     def post(self, request):
         user = request.data.get('user')
+
+
         # if not user['callback']:
         #     return Response({"message": "reCAPTCHA field cant not be empty"}, status=status.HTTP_400_BAD_REQUEST)
         # recaptcha_response = user['callback']
@@ -138,6 +140,8 @@ class RegisterView(APIView):
 
         user = user_serializer.save()
 
+        plan = get_plan(request.data.get('plan')['id'])
+
         serialize_card = serialize_credit_card(request,user)
 
         if 'message' in serialize_card:
@@ -147,11 +151,22 @@ class RegisterView(APIView):
         created_card  = create_card(serialize_card,user)
 
         if 'message' in created_card:
+            user.delete()
             error_create_card = created_card['message']
             return Response({'message': error_create_card}, status=status.HTTP_400_BAD_REQUEST)
 
+        card = created_card['card']
 
-        if notify_views.activate_account(user, request):
+        created_payment = create_payment(user,card,plan)
+
+        if 'message' in created_payment:
+            user.delete()
+            error_payment = created_payment['message']
+            return Response({'message': error_payment}, status=status.HTTP_400_BAD_REQUEST)
+
+        payment_id = created_payment['payment_id']
+
+        if notify_views.activate_account(user, request) and notify_views.payment_notification(user, card, plan, payment_id):
             return Response({'username': user.username, 'message': 'The email has been send'},
                         status=status.HTTP_201_CREATED)
         else:
