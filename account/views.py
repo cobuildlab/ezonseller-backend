@@ -140,7 +140,7 @@ class RegisterView(APIView):
 
         user = user_serializer.save()
 
-        plan = get_plan(user, request.data.get('plan')['id'])
+        plan = get_plan(request.data.get('plan')['id'])
 
         serialize_card = serialize_credit_card(request,user)
 
@@ -151,6 +151,7 @@ class RegisterView(APIView):
         created_card  = create_card(serialize_card,user)
 
         if 'message' in created_card:
+            user.delete()
             error_create_card = created_card['message']
             return Response({'message': error_create_card}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -159,6 +160,7 @@ class RegisterView(APIView):
         created_payment = create_payment(user,card,plan)
 
         if 'message' in created_payment:
+            user.delete()
             error_payment = created_payment['message']
             return Response({'message': error_payment}, status=status.HTTP_400_BAD_REQUEST)
 

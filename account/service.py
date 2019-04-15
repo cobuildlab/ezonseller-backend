@@ -3,6 +3,7 @@ from payment.models import CreditCard, PlanSubscription,PaymentHistory
 from payment.views import CreditCardViewSet,PurchasePlanView,extract_date
 from datetime import datetime
 from payment import serializers
+
 def serialize_credit_card(request, user):
     request.data.get('card')['user'] = user
 
@@ -31,17 +32,15 @@ def create_card(card_serializer, user):
     stripe_card = CreditCardViewSet.stripe_costumer_card(CreditCardViewSet, id, user)
 
     if not stripe_card:
-        user.delete()
         message = "cant not save the credit card please contact your bank"
         return {'message': message}
 
     return {"card":card}
 
-def get_plan(user,plan_id):
+def get_plan(plan_id):
     try:
         plan = PlanSubscription.objects.get(id=plan_id)
     except PlanSubscription.DoesNotExist:
-        user.delete()
         return {'message': 'the plan does not exist'}
 
     return plan
@@ -52,11 +51,9 @@ def create_payment(user,card,plan):
     if user.type_plan == "Free" or user.type_plan == "free":
         payment_info = PurchasePlanView.paymentPlanStripe(PurchasePlanView,plan, card, user)
     else:
-        user.delete()
         return {"message": "You already have an active plan and your account"}
 
     if not payment_info:
-        user.delete()
         return {'message': 'payment could not be made, please notify your bank distributor'}
 
     user.type_plan = plan.title
