@@ -39,7 +39,6 @@ def extract_date(date):
     string = date[2:]
     months = {'1': 5, '3': 15, '6': 30}
     years = {'1': 1, '2': 2, '3': 3}
-    free_days = timedelta(days=14)
     now = datetime.now()
     if string == 'month':
         mount = months[number]
@@ -47,7 +46,6 @@ def extract_date(date):
     if string == 'year':
         year = years[number]
         end_date = add_years(now, year)
-    end_date = end_date + free_days
     return end_date
 
 
