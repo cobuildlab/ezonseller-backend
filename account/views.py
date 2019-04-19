@@ -116,7 +116,7 @@ class RegisterView(APIView):
     def post(self, request):
         user = request.data.get('user')
 
-        """
+
         if not user['callback']:
              return Response({"message": "reCAPTCHA field cant not be empty"}, status=status.HTTP_400_BAD_REQUEST)
         recaptcha_response = user['callback']
@@ -127,7 +127,7 @@ class RegisterView(APIView):
 
         if not json.loads(r.content.decode())['success']:
              return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
-        """
+        
 
         user_serializer = validations.UserCreateSerializers(data=user)
 
