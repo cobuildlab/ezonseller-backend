@@ -127,7 +127,6 @@ class RegisterView(APIView):
 
         if not json.loads(r.content.decode())['success']:
              return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
-
         user_serializer = validations.UserCreateSerializers(data=user)
 
         if user_serializer.is_valid() is False:
@@ -156,17 +155,9 @@ class RegisterView(APIView):
             return Response({'message': error_create_card}, status=status.HTTP_400_BAD_REQUEST)
 
         card = created_card['card']
+        create_payment(user,card,plan)
 
-        created_payment = create_payment(user,card,plan)
-
-        if 'message' in created_payment:
-            user.delete()
-            error_payment = created_payment['message']
-            return Response({'message': error_payment}, status=status.HTTP_400_BAD_REQUEST)
-
-        payment_id = created_payment['payment_id']
-
-        if notify_views.activate_account(user, request) and notify_views.payment_notification(user, card, plan, payment_id):
+        if notify_views.activate_account(user, request):
             return Response({'username': user.username, 'message': 'The email has been send'},
                         status=status.HTTP_201_CREATED)
         else:

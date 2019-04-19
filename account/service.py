@@ -1,8 +1,15 @@
 from payment.validations import CreditCardCreateValidations
 from payment.models import CreditCard, PlanSubscription,PaymentHistory
 from payment.views import CreditCardViewSet,PurchasePlanView,extract_date
-from datetime import datetime
+from datetime import datetime,timedelta
 from payment import serializers
+
+
+
+def plan_date_finish():
+    free_days = timedelta(days=14)
+    end_date = datetime.now() + free_days
+    return end_date
 
 def serialize_credit_card(request, user):
     request.data.get('card')['user'] = user
@@ -47,23 +54,13 @@ def get_plan(plan_id):
 
 
 def create_payment(user,card,plan):
-
-    if user.type_plan == "Free" or user.type_plan == "free":
-        payment_info = PurchasePlanView.paymentPlanStripe(PurchasePlanView,plan, card, user)
-    else:
-        return {"message": "You already have an active plan and your account"}
-
-    if not payment_info:
-        return {'message': 'payment could not be made, please notify your bank distributor'}
-
     user.type_plan = plan.title
     user.id_plan = plan.id
     user.save()
-    plan_finish = extract_date(plan.duration)
-    payment = PaymentHistory.objects.create(
+    plan_finish = plan_date_finish()
+    PaymentHistory.objects.create(
         user=user,
         id_plan=plan.id,
-        paymentId=payment_info.get('payment_id'),
         title=plan.title,
         cost=plan.cost,
         image=plan.image,
@@ -80,9 +77,5 @@ def create_payment(user,card,plan):
         number_search=plan.number_search,
         automatic_payment=plan.automatic_payment
     )
-
-    serializer_data = serializers.PaymentHistorySerializer(payment, many=False)
-    serializer = serializer_data.data
-
-    return {"payment_id":payment_info.get('payment_id')}
+    return True
 

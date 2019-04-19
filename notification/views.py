@@ -46,9 +46,11 @@ def recover_password(user, request):
 def activate_account(user, request):
     try:
         to = user.email
+        uid = str(urlsafe_base64_encode(force_bytes(user.pk)))
         data = {'domain_fron': 'app.ezonseller.com',
                 'url': settings.URL,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                #'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'uid': uid,
                 'token': account_activation_token.make_token(user),
                 'username': user.username,
                 'msg': 'Account verification'
