@@ -47,6 +47,7 @@ def activate_account(user, request):
     try:
         to = user.email
         uid = str(urlsafe_base64_encode(force_bytes(user.pk)))
+        uid = uid[2:len(uid)-1]
         data = {'domain_fron': 'app.ezonseller.com',
                 'url': settings.URL,
                 #'uid': urlsafe_base64_encode(force_bytes(user.pk)),
