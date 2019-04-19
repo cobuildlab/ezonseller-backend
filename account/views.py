@@ -127,6 +127,8 @@ class RegisterView(APIView):
 
         if not json.loads(r.content.decode())['success']:
              return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
         user_serializer = validations.UserCreateSerializers(data=user)
 
         if user_serializer.is_valid() is False:
@@ -220,12 +222,12 @@ class ActivateAccountView(APIView):
             return Response({'message': 'The uidb is required, cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
         if not token:
             return Response({'message': 'the token is required, cant be empty'}, status=status.HTTP_400_BAD_REQUEST)
-        if not re.search("(b')", uidb):
-            return Response({'message': 'the uidb64 is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
-        decode = uidb.strip("b")
-        count = len(decode) - 1
-        decode = decode[1:count]
-        decode = str.encode(decode)
+        #if not re.search("(b')", uidb):
+        #    return Response({'message': 'the uidb64 is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+        #decode = uidb.strip("b")
+        #count = len(decode) - 1
+        #decode = decode[1:count]
+        decode = str.encode(uidb)
         uid = force_text(urlsafe_base64_decode(decode))
         try:
             user = account_models.User.objects.get(pk=uid)
