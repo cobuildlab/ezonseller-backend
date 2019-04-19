@@ -3,13 +3,37 @@ from payment.models import CreditCard, PlanSubscription,PaymentHistory
 from payment.views import CreditCardViewSet,PurchasePlanView,extract_date
 from datetime import datetime,timedelta
 from payment import serializers
+from calendar import isleap
+
+def add_years(d, years):
+    new_year = d.year + years
+    try:
+        return d.replace(year=new_year)
+    except ValueError:
+        if d.month == 2 and d.day == 29 and isleap(d.year) and not isleap(new_year):
+            return d.replace(year=new_year, day=28)
+        raise
 
 
-
-def plan_date_finish():
+def extract_date(date):
+    number = date[0:1]
+    string = date[2:]
+    months = {'1': 5, '3': 15, '6': 30}
+    years = {'1': 1, '2': 2, '3': 3}
+    now = datetime.now()
     free_days = timedelta(days=14)
-    end_date = datetime.now() + free_days
+
+    if string == 'month':
+        mount = months[number]
+        end_date = now + timedelta(6 * mount)
+    if string == 'year':
+        year = years[number]
+        end_date = add_years(now, year)
+
+    end_date = end_date + free_days
     return end_date
+
+
 
 def serialize_credit_card(request, user):
     request.data.get('card')['user'] = user
@@ -57,11 +81,12 @@ def create_payment(user,card,plan):
     user.type_plan = plan.title
     user.id_plan = plan.id
     user.save()
-    plan_finish = plan_date_finish()
+    plan_finish = extract_date(plan.duration)
     PaymentHistory.objects.create(
         user=user,
         id_plan=plan.id,
         title=plan.title,
+        paymentId="Free",
         cost=plan.cost,
         image=plan.image,
         description=plan.description,

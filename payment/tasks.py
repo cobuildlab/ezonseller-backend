@@ -4,7 +4,7 @@ from celery.decorators import periodic_task
 from celery.task.schedules import crontab
 from account import models as account_models
 from payment import models as payment_models
-from datetime import datetime
+from datetime import datetime, date
 from datetime import timedelta
 from calendar import isleap
 from celery.schedules import crontab
@@ -63,34 +63,40 @@ def execute_payment(payment_info):
         )
         payment_id = charge.get('id')
         plan_finish = extract_date(plan.duration)
-        payment = payment_models.PaymentHistory.objects.create(
-            user=user,
-            id_plan=plan.id,
-            paymentId=payment_id,
-            title=plan.title,
-            cost=plan.cost,
-            image=plan.image,
-            description=plan.description,
-            id_card=card.id,
-            name=card.first_name + card.last_name,
-            number_card=card.number_card,
-            cod_security=card.cod_security,
-            date_expiration=card.date_expiration,
-            date_start=datetime.now(),
-            date_finish=plan_finish,
-            accept=True,
-            unlimited_search=plan.unlimited_search,
-            number_search=plan.number_search,
-            automatic_payment=plan.automatic_payment
-        )
+        if payment_info.paymentId != 'Free':
+            payment = payment_models.PaymentHistory.objects.create(
+                user=user,
+                id_plan=plan.id,
+                paymentId=payment_id,
+                title=plan.title,
+                cost=plan.cost,
+                image=plan.image,
+                description=plan.description,
+                id_card=card.id,
+                name=card.first_name + card.last_name,
+                number_card=card.number_card,
+                cod_security=card.cod_security,
+                date_expiration=card.date_expiration,
+                date_start=datetime.now(),
+                date_finish=plan_finish,
+                accept=True,
+                unlimited_search=plan.unlimited_search,
+                number_search=plan.number_search,
+                automatic_payment=plan.automatic_payment
+            )
+            payment_info.accept = False
+            payment_info.save()
+            user.attemptPayment = 5
+            user.save()
+        else:
+            payment_info.paymentId = payment_id
+            payment_info.save()
         if notify_views.payment_automatic(user, card, plan, payment_id):
             print("the email has been send")
         else:
             print("the email not sent")
-        payment_info.accept = False
-        payment_info.save()
-        user.attemptPayment = 5
-        user.save()
+
+
         return "The payment is correct"
     except stripe.error.CardError as e:
         # Since it's a decline, stripe.error.CardError will be caught
@@ -138,10 +144,16 @@ def automatic_payment():
     payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False)
     count = 1
     for payment in payments:
-        if payment.date_finish <= date_now and payment.user.is_active:
+        if payment.paymentId == "Free" and payment.user.is_active:
+            free_days = timedelta(days=14)
+            date_expire = payment.date_start + free_days
+            if date_expire <= date_now:
+                expire = datetime.now() + timedelta(minutes=count)
+                execute_payment.apply_async(args=[payment], eta=expire)
+        elif payment.date_finish <= date_now and payment.user.is_active:
             expire = datetime.now() + timedelta(minutes=count)
             execute_payment.apply_async(args=[payment], eta=expire)
-            count += 1
+        count += 1
     return True
 
 
