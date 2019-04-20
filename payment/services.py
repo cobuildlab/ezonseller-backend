@@ -29,6 +29,6 @@ def getAllPlan(request):
     return HttpResponse(plan, status=status.HTTP_200_OK)
 
 
-def getPlan(request,id):
-    plan = serializers.serialize('json',PlanSubscription.objects.filter(id=id))
+def getPlan(request, id):
+    plan = serializers.serialize('json', PlanSubscription.objects.filter(id=id))
     return HttpResponse(plan, status=status.HTTP_200_OK)

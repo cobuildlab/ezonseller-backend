@@ -139,6 +139,7 @@ class PaymentHistory(models.Model):
     date_expiration = models.DateField(null=False)
     date_start = models.DateTimeField(null=False)
     date_finish = models.DateTimeField(null=False)
+    # Variables that defines whether the payment was made or not
     accept = models.BooleanField(_('Accept'), default=False, help_text=_('Accept the plan?'))
     automatic_payment = models.BooleanField(_('Automatic'), default=False, help_text=_('Accept the automatic payment?'))
     unlimited_search = models.BooleanField(_('Unlimited Search'), default=False, help_text=_('Accept unlimited searches?'))

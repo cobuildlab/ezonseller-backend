@@ -34,7 +34,7 @@ def extract_date(date):
     now = datetime.now()
     if string == 'month':
         mount = months[number]
-        end_date = now + timedelta(6*mount)
+        end_date = now + timedelta(6 * mount)
     if string == 'year':
         year = years[number]
         end_date = add_years(now, year)
@@ -43,17 +43,30 @@ def extract_date(date):
 
 @shared_task
 def execute_payment(payment_info):
+    """
+    Execute the pending payment
+    - If user is not active, does not do anything
+    :param payment_info:
+    :return:
+    """
     stripe.api_key = settings.STRIPE_SECRET_API_KEY
     user = account_models.User.objects.get(id=payment_info.user.id)
     plan = payment_models.PlanSubscription.objects.get(id=payment_info.id_plan)
     card = payment_models.CreditCard.objects.get(id=payment_info.id_card)
+
+    if user.is_active == False:
+        raise ValueError("Inactives user don't suppose to pay")
+
     if user.attemptPayment == 0:
         notify_views.payment_failure(user, plan, 0)
         print("email has send user disable")
+        user.is_active = False
         user.attemptPayment = -1
         user.save()
         return "user is disable"
+
     try:
+        # Charge current PaymentHistory
         charge = stripe.Charge.create(
             amount=math.ceil(int(str(plan.cost).replace(".", ''))),  # amount in cents
             currency="usd",
@@ -61,9 +74,12 @@ def execute_payment(payment_info):
             card=card.card_id,
             description=plan.description
         )
+        # Update payment info
         payment_id = charge.get('id')
+
+        # Create the new Payment History to charge in the Future
         plan_finish = extract_date(plan.duration)
-        if payment_info.paymentId != 'Free':
+        if payment_info.paymentId != 'Free':  # Not necessary
             payment = payment_models.PaymentHistory.objects.create(
                 user=user,
                 id_plan=plan.id,
@@ -96,7 +112,6 @@ def execute_payment(payment_info):
         else:
             print("the email not sent")
 
-
         return "The payment is correct"
     except stripe.error.CardError as e:
         # Since it's a decline, stripe.error.CardError will be caught
@@ -106,9 +121,11 @@ def execute_payment(payment_info):
         print(message)
     except stripe.error.RateLimitError as e:
         # Too many requests made to the API too quickly
+        print(str(e))
         pass
     except stripe.error.InvalidRequestError as e:
         # Invalid parameters were supplied to Stripe's API
+        print(str(e))
         pass
     except stripe.error.AuthenticationError as e:
         # Authentication with Stripe's API failed
@@ -124,36 +141,28 @@ def execute_payment(payment_info):
     except Exception as e:
         message = "payment problem " + str(e)
         print(message)
+
     if notify_views.payment_failure(user, plan, user.attemptPayment):
         print("email has send payment failure")
-        rest = user.attemptPayment - 1
-        user.attemptPayment = rest
-        user.save()
-        return "The payment can not be made"
     else:
         print("email has send payment failure")
-        rest = user.attemptPayment - 1
-        user.attemptPayment = rest
-        user.save()
-        return "The payment can not be made"
+
+    rest = user.attemptPayment - 1
+    user.attemptPayment = rest
+    user.is_active = False
+    user.save()
+
+    return "The payment can not be made"
 
 
 @periodic_task(run_every=crontab(minute=0, hour=12), name="automatic_payment", ignore_result=True)
 def automatic_payment():
     date_now = timezone.now()
+    # TODO: Make query that brings all the PaymentHistory that date_start < now() and accept = False (Non processed)
+    # TODO: Also that the user.is_active = False
     payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False)
-    count = 1
     for payment in payments:
-        if payment.paymentId == "Free" and payment.user.is_active:
-            free_days = timedelta(days=14)
-            date_expire = payment.date_start + free_days
-            if date_expire <= date_now:
-                expire = datetime.now() + timedelta(minutes=count)
-                execute_payment.apply_async(args=[payment], eta=expire)
-        elif payment.date_finish <= date_now and payment.user.is_active:
-            expire = datetime.now() + timedelta(minutes=count)
-            execute_payment.apply_async(args=[payment], eta=expire)
-        count += 1
+        execute_payment.apply_async(args=[payment])
     return True
 
 
@@ -162,7 +171,7 @@ def disable_plan_subscriptions():
     date_now = timezone.now()
     users = account_models.User.objects.all().exclude(type_plan="Free").exclude(is_superuser=True)
     users = users.aggregate(userid=ArrayAgg('id'))
-    payments = payment_models.PaymentHistory.objects.filter(user__in=users.get('userid')).\
+    payments = payment_models.PaymentHistory.objects.filter(user__in=users.get('userid')). \
         exclude(accept=False).exclude(automatic_payment=True)
     for payment in payments:
         if payment.date_finish <= date_now:
