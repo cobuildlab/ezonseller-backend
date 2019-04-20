@@ -4,7 +4,7 @@ from payment.views import CreditCardViewSet,PurchasePlanView,extract_date
 from datetime import datetime,timedelta
 from payment import serializers
 from calendar import isleap
-
+from product.models import AmazonAssociates,EbayAssociates
 def add_years(d, years):
     new_year = d.year + years
     try:
@@ -104,3 +104,18 @@ def create_payment(user,card,plan):
     )
     return True
 
+def amazon_acc(id):
+    try:AmazonAssociates.objects.get(user_id=id)
+    except AmazonAssociates.DoesNotExist:return False
+    return True
+
+def ebay_acc(id):
+    try:EbayAssociates.objects.get(user_id=id)
+    except EbayAssociates.DoesNotExist:return False
+    return True
+
+def acc_product(id):
+    amazon_product = amazon_acc(id)
+    ebay_product = ebay_acc(id)
+    if amazon_product or ebay_product: return True
+    return False

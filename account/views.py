@@ -24,7 +24,7 @@ import base64
 import requests
 import json
 from ezonseller import settings
-from account.service import create_card, serialize_credit_card, create_payment,get_plan
+from account.service import create_card, serialize_credit_card, create_payment,get_plan,acc_product
 
 class Login(APIView):
     """
@@ -81,7 +81,12 @@ class Login(APIView):
         user.failedAttempts = 5
         user.save()
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'Token': token.key, 'id': user.id, 'type_plan': user.type_plan, 'last_login': user.last_login},
+        return Response({'Token': token.key,
+                         'id': user.id,
+                         'type_plan': user.type_plan,
+                         'last_login': user.last_login,
+                         'acc_product':acc_product(user.pk)
+                         },
                         status=status.HTTP_200_OK)
 
 
@@ -127,7 +132,6 @@ class RegisterView(APIView):
 
         if not json.loads(r.content.decode())['success']:
              return Response({'message': 'Invalid reCAPTCHA. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
-        
 
         user_serializer = validations.UserCreateSerializers(data=user)
 
