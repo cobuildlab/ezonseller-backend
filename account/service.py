@@ -101,7 +101,6 @@ def create_payment(user, card, plan):
 
     # TODO: add 14 days outside of the function
     plan_finish = calculate_finish_date(plan.duration) + days_free
-    plan_start = datetime.now() + days_free
     PaymentHistory.objects.create(
         user=user,
         id_plan=plan.id,
@@ -116,7 +115,7 @@ def create_payment(user, card, plan):
         cod_security=card.cod_security,
         date_expiration=card.date_expiration,
         # TODO: Check that this should be added 14 days
-        date_start=plan_start,
+        date_start=datetime.now(),
         date_finish=plan_finish,
         accept=True,  # Payment has not been made yet
         unlimited_search=plan.unlimited_search,

@@ -163,7 +163,8 @@ def automatic_payment():
     #
     payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False).exclude(user_id__is_active=False)
     for payment in payments:
-        if payment.days_free != 0 and payment.date_start <= date_now :
+        date_start = payment.date_start + timedelta(days=payment.days_free)
+        if payment.days_free != 0 and  date_start <= date_now :
             # if payment have days free and date_start < now () ; date_start = date_created + days_free
             execute_payment.apply_async(args=[payment])
         elif payment.date_finish <= date_now:
