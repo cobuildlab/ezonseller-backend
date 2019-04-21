@@ -146,6 +146,7 @@ class PaymentHistory(models.Model):
     number_search = models.IntegerField(_('Number of search'), default=0, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
+    days_free = models.IntegerField(_('days_free'), default=0, blank=True, null=True, )
 
     def __str__(self):
         return self.user.username

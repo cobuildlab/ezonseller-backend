@@ -35,20 +35,17 @@ def calculate_finish_date(duration_string):
     months = {'1': 5, '3': 15, '6': 30}
     years = {'1': 1, '2': 2, '3': 3}
     now = datetime.now()
-    free_days = timedelta(days=14)
-
     if string == 'month':
         month = months[number]
         end_date = now + timedelta(6 * month)
     if string == 'year':
         year = years[number]
         end_date = add_years(now, year)
-
-    end_date = end_date + free_days
     return end_date
 
 
 def serialize_credit_card(request, user):
+
     request.data.get('card')['user'] = user
     card_serializer = CreditCardCreateValidations(data=request.data.get('card'), context=request.data.get('card'))
 
@@ -100,8 +97,11 @@ def create_payment(user, card, plan):
     user.type_plan = plan.title
     user.id_plan = plan.id
     user.save()
+    days_free = timedelta(days=14)
+
     # TODO: add 14 days outside of the function
-    plan_finish = calculate_finish_date(plan.duration)
+    plan_finish = calculate_finish_date(plan.duration) + days_free
+    plan_start = datetime.now() + days_free
     PaymentHistory.objects.create(
         user=user,
         id_plan=plan.id,
@@ -116,12 +116,13 @@ def create_payment(user, card, plan):
         cod_security=card.cod_security,
         date_expiration=card.date_expiration,
         # TODO: Check that this should be added 14 days
-        date_start=datetime.now(),
+        date_start=plan_start,
         date_finish=plan_finish,
-        accept=False,  # Payment has not been made yet
+        accept=True,  # Payment has not been made yet
         unlimited_search=plan.unlimited_search,
         number_search=plan.number_search,
-        automatic_payment=plan.automatic_payment
+        automatic_payment=plan.automatic_payment,
+        days_free = 14
     )
     return True
 

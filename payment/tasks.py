@@ -66,7 +66,7 @@ def execute_payment(payment_info):
         return "user is disable"
 
     try:
-        # Charge current PaymentHistory
+        #Charge current PaymentHistory
         charge = stripe.Charge.create(
             amount=math.ceil(int(str(plan.cost).replace(".", ''))),  # amount in cents
             currency="usd",
@@ -77,36 +77,33 @@ def execute_payment(payment_info):
         # Update payment info
         payment_id = charge.get('id')
 
-        # Create the new Payment History to charge in the Future
+        #Create the new Payment History to charge in the Future
         plan_finish = extract_date(plan.duration)
-        if payment_info.paymentId != 'Free':  # Not necessary
-            payment = payment_models.PaymentHistory.objects.create(
-                user=user,
-                id_plan=plan.id,
-                paymentId=payment_id,
-                title=plan.title,
-                cost=plan.cost,
-                image=plan.image,
-                description=plan.description,
-                id_card=card.id,
-                name=card.first_name + card.last_name,
-                number_card=card.number_card,
-                cod_security=card.cod_security,
-                date_expiration=card.date_expiration,
-                date_start=datetime.now(),
-                date_finish=plan_finish,
-                accept=True,
-                unlimited_search=plan.unlimited_search,
-                number_search=plan.number_search,
-                automatic_payment=plan.automatic_payment
-            )
-            payment_info.accept = False
-            payment_info.save()
-            user.attemptPayment = 5
-            user.save()
-        else:
-            payment_info.paymentId = payment_id
-            payment_info.save()
+        payment = payment_models.PaymentHistory.objects.create(
+            user=user,
+            id_plan=plan.id,
+            paymentId=payment_id,
+            title=plan.title,
+            cost=plan.cost,
+            image=plan.image,
+            description=plan.description,
+            id_card=card.id,
+            name=card.first_name + card.last_name,
+            number_card=card.number_card,
+            cod_security=card.cod_security,
+            date_expiration=card.date_expiration,
+            date_start=datetime.now(),
+            date_finish=plan_finish,
+            accept=True,
+            unlimited_search=plan.unlimited_search,
+            number_search=plan.number_search,
+            automatic_payment=plan.automatic_payment
+        )
+        payment_info.accept = False
+        payment_info.save()
+        user.attemptPayment = 5
+        user.save()
+
         if notify_views.payment_automatic(user, card, plan, payment_id):
             print("the email has been send")
         else:
@@ -130,13 +127,16 @@ def execute_payment(payment_info):
     except stripe.error.AuthenticationError as e:
         # Authentication with Stripe's API failed
         # (maybe you changed API keys recently)
+        print(str(e))
         pass
     except stripe.error.APIConnectionError as e:
         # Network communication with Stripe failed
+        print(str(e))
         pass
     except stripe.error.StripeError as e:
         # Display a very generic error to the user, and maybe send
         # yourself an email
+        print(str(e))
         pass
     except Exception as e:
         message = "payment problem " + str(e)
@@ -160,9 +160,14 @@ def automatic_payment():
     date_now = timezone.now()
     # TODO: Make query that brings all the PaymentHistory that date_start < now() and accept = False (Non processed)
     # TODO: Also that the user.is_active = False
-    payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False)
+    #
+    payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False).exclude(user_id__is_active=False)
     for payment in payments:
-        execute_payment.apply_async(args=[payment])
+        if payment.days_free != 0 and payment.date_start <= date_now :
+            # if payment have days free and date_start < now () ; date_start = date_created + days_free
+            execute_payment.apply_async(args=[payment])
+        elif payment.date_finish <= date_now:
+            execute_payment.apply_async(args=[payment])
     return True
 
 

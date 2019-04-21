@@ -46,6 +46,7 @@ class ProfileUserSerializers(serpy.Serializer):
                 'date_finish': payment.date_finish,
                 'purchase': payment.accept,
                 'automatic_payment': payment.automatic_payment,
+                'days_free' : payment.days_free
             }
             arrpayments.append(data)
             break
