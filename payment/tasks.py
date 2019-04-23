@@ -76,8 +76,6 @@ def execute_payment(payment_info):
         # Update payment info
         payment_id = charge.get('id')
         payment_info.paymentId = payment_id
-        payment_info.accept = False
-        payment_info.renovate = True
         payment_info.save()
         # Create the new Payment History to charge in the Future
         # plan_finish = extract_date(plan.duration)
@@ -197,7 +195,11 @@ def disable_plan_subscriptions():
 
 @shared_task
 def create_payment_history(payment_info):
+    """
 
+    :param payment_info: payment with expired date = date_now + 1 day
+    :return:
+    """
     # Add date now 1 day
     date_start = datetime.now() + timedelta(days = 1)
     user = account_models.User.objects.get(id=payment_info.user.id)
@@ -226,6 +228,10 @@ def create_payment_history(payment_info):
             number_search=plan.number_search,
             automatic_payment=plan.automatic_payment,
         )
+        # after creating change values renovate = True and accept = False
+        payment_info.renovate = True
+        payment_info.accept = False
+        payment_info.save()
 
         return True
 

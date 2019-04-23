@@ -248,6 +248,7 @@ class CancelSubscriptionView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
         user.type_plan = 'Free'
         user.id_plan = 0
+        user.is_active = False
         user.save()
         payments = PaymentHistory.objects.filter(user=user, id_plan=plan.id).order_by('-id')[:1]
         user_payment = payments[0]
