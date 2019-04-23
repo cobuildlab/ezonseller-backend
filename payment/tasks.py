@@ -66,16 +66,17 @@ def execute_payment(payment_info):
         return "user is disable"
     try:
         # Charge current PaymentHistory
-        # charge = stripe.Charge.create(
-        #     amount=math.ceil(int(str(plan.cost).replace(".", ''))),  # amount in cents
-        #     currency="usd",
-        #     customer=user.customer_id,
-        #     card=card.card_id,
-        #     description=plan.description
-        # )
+        charge = stripe.Charge.create(
+            amount=math.ceil(int(str(plan.cost).replace(".", ''))),  # amount in cents
+            currency="usd",
+            customer=user.customer_id,
+            card=card.card_id,
+            description=plan.description
+        )
         # Update payment info
-        payment_id = 10
+        payment_id = charge.get('id')
         payment_info.paymentId = payment_id
+        payment_info.renovate = False
         payment_info.save()
         # Create the new Payment History to charge in the Future
         # plan_finish = extract_date(plan.duration)
