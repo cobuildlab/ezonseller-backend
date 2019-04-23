@@ -147,6 +147,8 @@ class PaymentHistory(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
     days_free = models.IntegerField(_('days_free'), default=0, blank=True, null=True, )
+    # Plan is renovate take value True
+    renovate = models.BooleanField(_('Renovate'), default=False)
 
     def __str__(self):
         return self.user.username
