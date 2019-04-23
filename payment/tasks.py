@@ -76,7 +76,8 @@ def execute_payment(payment_info):
         # Update payment info
         payment_id = charge.get('id')
         payment_info.paymentId = payment_id
-        payment_info.renovate = False
+        payment_info.accept = False
+        payment_info.renovate = True
         payment_info.save()
         # Create the new Payment History to charge in the Future
         # plan_finish = extract_date(plan.duration)
@@ -224,11 +225,7 @@ def create_payment_history(payment_info):
             unlimited_search=plan.unlimited_search,
             number_search=plan.number_search,
             automatic_payment=plan.automatic_payment,
-            renovate = True
         )
-
-        payment_info.accept = False
-        payment_info.save()
 
         return True
 
