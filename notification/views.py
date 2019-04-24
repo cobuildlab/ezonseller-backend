@@ -184,6 +184,13 @@ def payment_automatic(user, card, plan, number_payment):
 
 
 def payment_failure(user, plan, attempt):
+    """
+    notification of when the attempt of Payment from the User fails
+    :param user:
+    :param plan:
+    :param attempt:
+    :return:
+    """
     try:
         to = user.email
         data = {'domain_fron': 'app.ezonseller.com',
@@ -197,8 +204,6 @@ def payment_failure(user, plan, attempt):
             text_content = render_to_string("email/payment_fail.html", data)
             html_content = render_to_string("email/payment_fail.html", data)
         else:
-            user.is_active = False
-            user.save()
             text_content = render_to_string("email/disable_user.html", data)
             html_content = render_to_string("email/disable_user.html", data)
         send = EmailMultiAlternatives(subject, text_content, from_email, [to],

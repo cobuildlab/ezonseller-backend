@@ -139,12 +139,16 @@ class PaymentHistory(models.Model):
     date_expiration = models.DateField(null=False)
     date_start = models.DateTimeField(null=False)
     date_finish = models.DateTimeField(null=False)
+    # Variables that defines whether the payment was made or not
     accept = models.BooleanField(_('Accept'), default=False, help_text=_('Accept the plan?'))
     automatic_payment = models.BooleanField(_('Automatic'), default=False, help_text=_('Accept the automatic payment?'))
     unlimited_search = models.BooleanField(_('Unlimited Search'), default=False, help_text=_('Accept unlimited searches?'))
     number_search = models.IntegerField(_('Number of search'), default=0, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     modified = models.DateTimeField(auto_now=True, editable=False)
+    days_free = models.IntegerField(_('days_free'), default=0, blank=True, null=True, )
+    # Plan is renovate take value True
+    renovate = models.BooleanField(_('Renovate'), default=False)
 
     def __str__(self):
         return self.user.username
