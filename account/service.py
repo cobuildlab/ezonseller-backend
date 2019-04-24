@@ -29,7 +29,6 @@ def calculate_finish_date(duration_string):
     :param duration_string: '1 year' or '1 month'
     :return:
     """
-    # TODO: add 14 days outside of the function
     number = duration_string[0:1]
     string = duration_string[2:]
     months = {'1': 5, '3': 15, '6': 30}
@@ -99,7 +98,6 @@ def create_payment(user, card, plan):
     user.save()
     days_free = timedelta(days=14)
 
-    # TODO: add 14 days outside of the function
     plan_finish = calculate_finish_date(plan.duration) + days_free
     PaymentHistory.objects.create(
         user=user,
@@ -114,7 +112,6 @@ def create_payment(user, card, plan):
         number_card=card.number_card,
         cod_security=card.cod_security,
         date_expiration=card.date_expiration,
-        # TODO: Check that this should be added 14 days
         date_start=datetime.now(),
         date_finish=plan_finish,
         accept=True,  # Payment has not been made yet

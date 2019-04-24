@@ -77,28 +77,7 @@ def execute_payment(payment_info):
         payment_id = charge.get('id')
         payment_info.paymentId = payment_id
         payment_info.save()
-        # Create the new Payment History to charge in the Future
-        # plan_finish = extract_date(plan.duration)
-        # payment = payment_models.PaymentHistory.objects.create(
-        #     user=user,
-        #     id_plan=plan.id,
-        #     paymentId=payment_id,
-        #     title=plan.title,
-        #     cost=plan.cost,
-        #     image=plan.image,
-        #     description=plan.description,
-        #     id_card=card.id,
-        #     name=card.first_name + card.last_name,
-        #     number_card=card.number_card,
-        #     cod_security=card.cod_security,
-        #     date_expiration=card.date_expiration,
-        #     date_start=datetime.now(),
-        #     date_finish=plan_finish,
-        #     accept=True,
-        #     unlimited_search=plan.unlimited_search,
-        #     number_search=plan.number_search,
-        #     automatic_payment=plan.automatic_payment
-        # )
+
         user.attemptPayment = 5
         user.save()
 
@@ -153,19 +132,14 @@ def execute_payment(payment_info):
     return "The payment can not be made"
 
 
-# @periodic_task(run_every=timedelta(seconds=15), name="automatic_payment", ignore_result=True)
 @periodic_task(run_every=crontab(minute=0, hour=12), name="automatic_payment", ignore_result=True)
 def automatic_payment():
     date_now = timezone.now()
-    # TODO: Make query that brings all the PaymentHistory that date_start < now() and accept = False (Non processed)
-    # TODO: Also that the user.is_active = False
-    # TODO: exclude paymentId != ' ' and
     payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False).exclude(
-        user_id__is_active=False).exclude(paymentId__gt='')
+        user_id__is_active=False).exclude(paymentId__iexact='')
     for payment in payments:
         date_start = payment.date_start + timedelta(days=payment.days_free)
         if date_start <= date_now:
-            # if payment have days free and date_start < now () ; date_start = date_created + days_free
             execute_payment.apply_async(args=[payment])
     return True
 
@@ -228,7 +202,6 @@ def create_payment_history(payment_info):
             number_search=plan.number_search,
             automatic_payment=plan.automatic_payment,
         )
-        # after creating change values renovate = True and accept = False
         payment_info.renovate = True
         payment_info.accept = False
         payment_info.save()
@@ -241,7 +214,6 @@ def create_payment_history(payment_info):
         return False
 
 
-# @periodic_task(run_every=timedelta(seconds=15), name="check_payment_history", ignore_result=True)
 @periodic_task(run_every=crontab(minute=0, hour=12), name="check_payment_history", ignore_result=True)
 def check_payment_history():
     payments = payment_models.PaymentHistory.objects.exclude(accept=False).exclude(automatic_payment=False).exclude(
@@ -249,6 +221,5 @@ def check_payment_history():
     date_now = timezone.now() + timedelta(days = 1)
     for payment in payments:
        if payment.date_finish <= date_now:
-           # if payment date finish is < = now() + 1 day
            create_payment_history.apply_async(args=[payment])
     return True
