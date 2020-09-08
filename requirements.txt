@@ -10,7 +10,7 @@ cffi==1.11.4
 chardet==3.0.4
 cryptography==2.1.4
 dj-database-url==0.4.2
-Django==2.0.1
+Django==2.2.13
 django-celery==3.2.2
 django-cors-headers==2.1.0
 django-environ==0.4.4
